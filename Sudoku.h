@@ -2,6 +2,12 @@
 #define SUDOKU_H
 
 
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
+
+#define SOURCES "/usr/resources_coding/"
+
+
 enum NUMBERS {
 
     NOTHING,
@@ -16,8 +22,6 @@ struct FIELD {
     NUMBERS num = NOTHING;
     std::vector<NUMBERS> possible;
 };
-
-
 
 class Sudoku {
 private:

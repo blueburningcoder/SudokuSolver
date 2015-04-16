@@ -8,3 +8,7 @@ Sudoku::Sudoku() {
 }
 
 
+void Sudoku::draw(sf::RenderWindow *window) {
+    // TODO: draw
+}
+
