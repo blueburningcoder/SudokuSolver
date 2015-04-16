@@ -1,12 +1,15 @@
 #include <iostream>
-#include <TGUI/TGUI.hpp>
-
+#include <SFML/Graphics.hpp>
+#include "GraphicsControl.h"
 
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
-    sf::RenderWindow window(sf::VideoMode(200, 200), "Sudoku Solver");
-    tgui::Gui gui(window);
+    sf::RenderWindow window(sf::VideoMode(600, 600), "Sudoku Solver");
+
+    GraphicsControl control;
+    control.setWindow(&window);
+    control.createGui();
 
     int Frame = 0;
 
@@ -30,24 +33,15 @@ int main() {
                 default:
                     std::cout << "uncovered event" << std::endl;
             }
-
-            gui.handleEvent(event);
-        }
-
-        tgui::Callback callback;
-        while (gui.pollCallback(callback))
-        {
-            // catches the callback of the TGUI
-            switch (callback.id) {
-                default:
-                    std::cout << "uncought callback: " << std::to_string(callback.id) << std::endl;
-                    break;
-            }
         }
 
 
         window.clear();
-        gui.draw();
+
+        // TODO: draw stuff
+
+        control.drawGui();
+
         window.display();
         std::cout << "Frame: " << Frame << std::endl;
         Frame++;

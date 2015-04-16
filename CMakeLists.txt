@@ -18,5 +18,5 @@ endif()
 
 
 set(SOURCE_FILES main.cpp)
-add_executable(SudokuSolver ${SOURCE_FILES})
+add_executable(SudokuSolver ${SOURCE_FILES} GraphicsControl.cpp GraphicsControl.h)
 target_link_libraries(SudokuSolver ${TGUI_LIBRARY} ${SFML_LIBRARIES})
