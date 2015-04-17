@@ -1,6 +1,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include "GraphicsControl.h"
+#include "Sudoku.h"
 
 int main() {
     std::cout << "Hello, World!" << std::endl;
@@ -10,6 +11,8 @@ int main() {
     GraphicsControl control;
     control.setWindow(&window);
     control.createGui();
+
+    Sudoku sud;
 
     int Frame = 0;
 
@@ -41,6 +44,8 @@ int main() {
         // TODO: draw stuff
 
         control.drawGui();
+
+        sud.draw(&window);
 
         window.display();
         std::cout << "Frame: " << Frame << std::endl;
