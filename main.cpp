@@ -6,7 +6,7 @@
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
-    sf::RenderWindow window(sf::VideoMode(600, 600), "Sudoku Solver");
+    sf::RenderWindow window(sf::VideoMode(550, 550), "Sudoku Solver");
 
     GraphicsControl control;
     control.setWindow(&window);

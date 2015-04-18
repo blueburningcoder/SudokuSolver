@@ -19,8 +19,8 @@ void FIELD::draw(sf::RenderWindow *window) {
 
 
 Sudoku::Sudoku() {
-    Ground.setPosition(x - 1, y - 1);
-    Ground.setSize(sf::Vector2f(450, 450) );
+    Ground.setPosition(x - 4, y - 4);
+    Ground.setSize(sf::Vector2f(460, 460) );
     Ground.setFillColor(sf::Color::White);
 
     std::vector<FIELD> tmp1;
@@ -48,12 +48,29 @@ Sudoku::Sudoku() {
     if (!font.loadFromFile(SOURCES"DejaVuSans.ttf") )
         std::cout << "Failed loading font" << std::endl;
 
+    int moveX = 50, moveY = 50;
 
+    for (int num = 0; num < 9; num ++) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                fields[i + (num / 3) * 3][j + (num % 3) * 3].init(i * 50 + moveX,
+                        j * 50 + moveY, font);
+            }
+        }
+        moveY += 152;
+        if (moveY > 500) {
+            moveY = 50;
+            moveX += 152;
+        }
+    }
+
+    /*
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
             fields[i][j].init(i * 50 + 50, j * 50 + 50, font);
         }
     }
+     */
 }
 
 
