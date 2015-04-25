@@ -4,7 +4,7 @@
 #include "Sudoku.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    std::cout << "Forward, Sudoku Solver!" << std::endl;
 
     sf::RenderWindow window(sf::VideoMode(550, 550), "Sudoku Solver");
 
@@ -40,8 +40,6 @@ int main() {
 
 
         window.clear();
-
-        // TODO: draw stuff
 
         control.drawGui();
 

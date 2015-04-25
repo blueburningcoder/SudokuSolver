@@ -18,22 +18,29 @@ enum NUMBERS {
 
 };
 
+
 struct FIELD {
     FIELD(){};
     sf::RectangleShape Tile;
-    NUMBERS num = NOTHING;
+    NUMBERS num = ONE;
     std::vector<NUMBERS> possible;
+    sf::Font font;
     sf::Text text;
 
     void init(int x, int y, sf::Font font);
     void draw(sf::RenderWindow *window);
+
+private:
+    bool isInit = false;
 };
+
 
 class Sudoku {
 private:
     int x = 50, y = 50;
     std::vector<std::vector<FIELD> > fields;
     sf::RectangleShape Ground;
+    sf::Font font;
 
 public:
     Sudoku();

@@ -3,18 +3,37 @@
 
 
 
-void FIELD::init(int x, int y, sf::Font font) {
+void FIELD::init(int x, int y, sf::Font newFont) {
+    font = newFont;
     Tile.setPosition(x, y);
     Tile.setFillColor(sf::Color::Black);
     Tile.setSize(sf::Vector2f(48, 48) );
+
     text.setFont(font);
-    text.setPosition(x, y);
-    text.setCharacterSize(7);
+    text.setPosition(x + 2, y);
+    text.setCharacterSize(14);
+    text.setColor(sf::Color(200, 200, 200) );
+
+    std::string test = "";
+
+    for (int i = 1; i < 10; i++) {
+        test += std::to_string(i);
+        test += "  ";
+        if (i % 3 == 0)
+            test += "\n";
+    }
+
+    text.setString(test);
+
+    isInit = true;
 }
 
 
 void FIELD::draw(sf::RenderWindow *window) {
     window->draw(Tile);
+
+    if (isInit)
+        window->draw(text);
 }
 
 
@@ -44,7 +63,6 @@ Sudoku::Sudoku() {
         fields.push_back(tmp1);
     }
 
-    sf::Font font;
     if (!font.loadFromFile(SOURCES"DejaVuSans.ttf") )
         std::cout << "Failed loading font" << std::endl;
 

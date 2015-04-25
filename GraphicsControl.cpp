@@ -13,7 +13,7 @@ void GraphicsControl::setWindow(sf::RenderWindow *window) {
 void GraphicsControl::createGui() {
     font.loadFromFile(SOURCES"DejaVuSans.ttf");
     text.setFont(font);
-    text.setCharacterSize(30);
+    text.setCharacterSize(20);
     text.setPosition(20, 20);
     text.setString("This is an Example 1 2 3 4 5 6 7 8 9 0");
 }
