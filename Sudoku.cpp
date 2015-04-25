@@ -3,10 +3,11 @@
 
 
 
-void FIELD::init(int x, int y, sf::Font newFont) {
+void FIELD::init(int x, int y, sf::Font newFont, int Cluster) {
     font = newFont;
     xPos = x;
     yPos = y;
+    ClusterNum = Cluster;
     Tile.setPosition(xPos, yPos);
     Tile.setFillColor(sf::Color::Black);
     Tile.setSize(sf::Vector2f(48, 48) );
@@ -31,22 +32,6 @@ void FIELD::init(int x, int y, sf::Font newFont) {
         possible.push_back(true);
     }
 
-    // Nums[0].setFont(font);
-    // Nums[0].setPosition(xPos + 2, yPos);
-    // Nums[0].setCharacterSize(14);
-    // Nums[0].setColor(sf::Color(200, 200, 200) );
-//
-    // std::string test = "";
-//
-    // for (int i = 1; i < 10; i++) {
-    //     test += std::to_string(i);
-    //     test += "  ";
-    //     if (i % 3 == 0)
-    //         test += "\n";
-    // }
-//
-    // Nums[0].setString(test);
-
     isInit = true;
 }
 
@@ -55,17 +40,60 @@ void FIELD::draw(sf::RenderWindow *window) {
     window->draw(Tile);
 
     if (num == NOTHING) {
-        for (int i = 0; i < 9 && possible[i]; i++)
+        for (int i = 0; i < 9; i++)
             window->draw(Nums[i]);
     } else
         window->draw(Nums[9]);
 }
 
 
-void FIELD::setNum(NUMBERS number) {
-    num = number;
+void FIELD::setNum(int number) {
+    num = (NUMBERS) number;
     Nums[9].setString(std::to_string(num) );
+    for (int dir = 0; dir < 4; dir ++) {
+        FIELD *next = this;
+        bool ongoing = true;
+        while (ongoing) {
+            next->removePossible(num);
+            ongoing = next->isNeighbour(dir);
+            next = next->getNeighbour(dir);
+        }
+    }
 }
+
+
+void FIELD::removePossible(NUMBERS alreadyNum) {
+    possible[(int) alreadyNum] = false;
+    Nums[(int) alreadyNum - 1].setColor(sf::Color(200, 20, 20, 150) );
+}
+
+
+NUMBERS FIELD::getNum() {
+    return num;
+}
+
+
+void FIELD::setNeighbour(int dir, FIELD *next) {
+    if (dir % 4 == dir)
+        Neighbours[dir] = next;
+}
+
+
+bool FIELD::isNeighbour(int dir) {
+    return dir % 4 == dir && Neighbours[dir] != NULL;
+}
+
+
+FIELD* FIELD::getNeighbour(int dir) {
+
+    if (dir % 4 == dir && isNeighbour(dir) ) {
+        return Neighbours[dir];
+    }
+
+    return NULL;
+}
+
+
 
 
 
@@ -107,7 +135,7 @@ Sudoku::Sudoku() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 fields[i + (num / 3) * 3][j + (num % 3) * 3].init(i * 50 + moveX,
-                        j * 50 + moveY, font);
+                        j * 50 + moveY, font, num);
             }
         }
         moveY += 152;
@@ -117,7 +145,14 @@ Sudoku::Sudoku() {
         }
     }
 
+    std::cout << "setting neighbours" << std::endl;
+
+    setNeighbours();
+
     std::cout << "Finished Sudoku init" << std::endl;
+
+    fields[5][3].setNum(3);
+    fields[3][8].setNum(5);
 
     /*
     for (int i = 0; i < 9; i++) {
@@ -126,6 +161,22 @@ Sudoku::Sudoku() {
         }
     }
      */
+}
+
+
+void Sudoku::setNeighbours() {
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (j > 0)
+                fields[i][j].setNeighbour(0, &fields[i][j - 1]);
+            if (i < 9 - 1)
+                fields[i][j].setNeighbour(1, &fields[i + 1][j]);
+            if (j < 9 - 1)
+                fields[i][j].setNeighbour(2, &fields[i][j + 1]);
+            if (i > 0)
+                fields[i][j].setNeighbour(3, &fields[i - 1][j]);
+        }
+    }
 }
 
 
@@ -139,4 +190,11 @@ void Sudoku::draw(sf::RenderWindow *window) {
         }
     }
 }
+
+
+void Sudoku::setNum(int i, int j, int number) {
+    if (i % 9 == i && j % 9 == j && number % 10 == number)
+        fields[i][j].setNum(number);
+}
+
 

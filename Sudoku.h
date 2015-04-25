@@ -22,18 +22,27 @@ enum NUMBERS {
 struct FIELD {
     FIELD(){};
     sf::RectangleShape Tile;
+    FIELD *Neighbours[4] = {};
     NUMBERS num = NOTHING;
     std::vector<bool> possible;
     sf::Font font;
     sf::Text Nums[10];
 
-    void init(int x, int y, sf::Font font);
+    void init(int x, int y, sf::Font font, int Cluster);
     void draw(sf::RenderWindow *window);
-    void setNum(NUMBERS num);
+
+    void setNum(int number);
+    void removePossible(NUMBERS alreadyNum);
+    NUMBERS getNum();
+
+    void setNeighbour(int dir, FIELD *next);
+    bool isNeighbour(int dir);
+    FIELD *getNeighbour(int dir);
 
 private:
     bool isInit = false;
     int xPos, yPos;
+    int ClusterNum;
 };
 
 
@@ -44,10 +53,13 @@ private:
     sf::RectangleShape Ground;
     sf::Font font;
 
+    void setNeighbours();
+
 public:
     Sudoku();
 
     void draw(sf::RenderWindow *window);
+    void setNum(int i, int j, int number);
 
 };
 
