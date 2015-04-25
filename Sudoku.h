@@ -22,16 +22,18 @@ enum NUMBERS {
 struct FIELD {
     FIELD(){};
     sf::RectangleShape Tile;
-    NUMBERS num = ONE;
-    std::vector<NUMBERS> possible;
+    NUMBERS num = NOTHING;
+    std::vector<bool> possible;
     sf::Font font;
-    sf::Text text;
+    sf::Text Nums[10];
 
     void init(int x, int y, sf::Font font);
     void draw(sf::RenderWindow *window);
+    void setNum(NUMBERS num);
 
 private:
     bool isInit = false;
+    int xPos, yPos;
 };
 
 
