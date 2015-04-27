@@ -16,7 +16,11 @@ int main() {
 
     int Frame = 0;
 
+    sf::Vector2i mousePos;
+
     while (window.isOpen() ) {
+
+        mousePos = sf::Mouse::getPosition(window);
 
 
         sf::Event event;
@@ -32,7 +36,12 @@ int main() {
                     if(event.key.code == sf::Keyboard::Escape) {
                         std::cout << "Escape" << std::endl;
                         window.close();
-                    }
+                    } else
+                        control.handleKeyCode(event.key.code);
+                case sf::Event::MouseButtonPressed:
+                    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) )
+                        control.select(sud.getClicked(mousePos.x, mousePos.y) );
+                    break;
                 default:
                     std::cout << "uncovered event" << std::endl;
             }

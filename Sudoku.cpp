@@ -3,7 +3,7 @@
 
 
 
-void FIELD::init(int x, int y, sf::Font newFont, int Cluster) {
+void FIELD::init(int x, int y, sf::Font newFont, int Cluster, Sudoku *sud) {
     font = newFont;
     xPos = x;
     yPos = y;
@@ -46,15 +46,18 @@ void FIELD::draw(sf::RenderWindow *window) {
         window->draw(Nums[9]);
 }
 
-
-void FIELD::setNum(int number) {
-    num = (NUMBERS) number;
-    Nums[9].setString(std::to_string(num) );
+void FIELD::update() {
+    for (int i = 1; i < 10; i++) {
+        setPossible( (NUMBERS) i);
+    }
     for (int dir = 0; dir < 4; dir ++) {
         FIELD *next = this;
         bool ongoing = true;
         while (ongoing) {
-            next->removePossible(num);
+            NUMBERS othNum = next->getNum();
+            if (othNum != NOTHING) {
+                removePossible(othNum);
+            }
             ongoing = next->isNeighbour(dir);
             next = next->getNeighbour(dir);
         }
@@ -62,9 +65,23 @@ void FIELD::setNum(int number) {
 }
 
 
+void FIELD::setNum(int number) {
+    num = (NUMBERS) number;
+
+    if (num != NOTHING)
+        Nums[9].setString(std::to_string(num));
+}
+
+
 void FIELD::removePossible(NUMBERS alreadyNum) {
     possible[(int) alreadyNum] = false;
     Nums[(int) alreadyNum - 1].setColor(sf::Color(200, 20, 20, 150) );
+}
+
+
+void FIELD::setPossible(NUMBERS possNum) {
+    possible[(int) possNum] = true;
+    Nums[(int) possNum - 1].setColor(sf::Color(20, 200, 20) );
 }
 
 
@@ -93,6 +110,15 @@ FIELD* FIELD::getNeighbour(int dir) {
     return NULL;
 }
 
+
+bool FIELD::isInside(int x, int y) {
+    return xPos <= x && xPos + 48 >= x && yPos <= y && yPos + 48 >= y;
+}
+
+
+int FIELD::getClusterNum() {
+    return ClusterNum;
+}
 
 
 
@@ -135,7 +161,7 @@ Sudoku::Sudoku() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 fields[i + (num / 3) * 3][j + (num % 3) * 3].init(i * 50 + moveX,
-                        j * 50 + moveY, font, num);
+                        j * 50 + moveY, font, num, this);
             }
         }
         moveY += 152;
@@ -182,6 +208,8 @@ void Sudoku::setNeighbours() {
 
 void Sudoku::draw(sf::RenderWindow *window) {
 
+    Update();
+
     window->draw(Ground);
 
     for (int i = 0; i < 9; i++) {
@@ -196,5 +224,26 @@ void Sudoku::setNum(int i, int j, int number) {
     if (i % 9 == i && j % 9 == j && number % 10 == number)
         fields[i][j].setNum(number);
 }
+
+
+FIELD* Sudoku::getClicked(int x, int y) {
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (fields[i][j].isInside(x, y) )
+                return &fields[i][j];
+        }
+    }
+    return NULL;
+}
+
+
+void Sudoku::Update() {
+    // TODO: Multithreading potential
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++)
+            fields[i][j].update();
+    }
+}
+
 
 
