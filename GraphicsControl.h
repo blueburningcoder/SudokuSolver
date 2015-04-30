@@ -20,13 +20,13 @@ private:
 
 public:
     GraphicsControl(){}
-    void setWindow(sf::RenderWindow *window);
-    void select(FIELD *field);
-    FIELD *getSelected();
-    bool isSelected();
-    void handleKeyCode(sf::Keyboard::Key pressed);
-    void createGui();
-    void drawGui();
+    void setWindow(sf::RenderWindow *window); // setting the @param window to draw on later
+    void select(FIELD *field);  // selecting the @param FIELD for changing its valuse
+    FIELD *getSelected();       // returns the previously selected FIELD
+    bool isSelected();          // returns if there is a FIELD selected
+    void handleKeyCode(sf::Keyboard::Key pressed); // handling the numkeys pressed
+    void createGui();           // TODO: creates the GUI
+    void drawGui();             // drawing the gui
 };
 
 

@@ -5,11 +5,13 @@
 
 
 
+// setting the @param window for drawing on it later on
 void GraphicsControl::setWindow(sf::RenderWindow *window) {
     GraphicsControl::window = window;
 }
 
 
+// creates the GUI ... TODO: update
 void GraphicsControl::createGui() {
     font.loadFromFile(SOURCES"DejaVuSans.ttf");
     text.setFont(font);
@@ -19,22 +21,28 @@ void GraphicsControl::createGui() {
 }
 
 
+// selects the @param field if it isn't null
 void GraphicsControl::select(FIELD *field) {
-    selected = field;
-    hasSelected = true;
+    hasSelected = field != NULL;
+
+    if (hasSelected)
+        selected = field;
 }
 
 
+// returns the latest selected field or null
 FIELD* GraphicsControl::getSelected() {
     return selected;
 }
 
 
+// returns if there is an field selected currrently
 bool GraphicsControl::isSelected() {
     return hasSelected;
 }
 
 
+// handles the @param pressed key (only numkeys though)
 void GraphicsControl::handleKeyCode(sf::Keyboard::Key pressed) {
     if (sf::Keyboard::Key::Num0 == pressed
         || sf::Keyboard::Key::Numpad0 == pressed)
@@ -69,6 +77,7 @@ void GraphicsControl::handleKeyCode(sf::Keyboard::Key pressed) {
 }
 
 
+// drawing the gui
 void GraphicsControl::drawGui() {
     window->draw(text);
 }

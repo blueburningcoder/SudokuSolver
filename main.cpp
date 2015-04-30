@@ -8,9 +8,13 @@ int main() {
 
     sf::RenderWindow window(sf::VideoMode(550, 550), "Sudoku Solver");
 
+    // initializing
+
     GraphicsControl control;
     control.setWindow(&window);
     control.createGui();
+
+    // creating the Sudoku, the FrameCounter and the mousePosition
 
     Sudoku sud;
 
@@ -22,8 +26,9 @@ int main() {
 
         mousePos = sf::Mouse::getPosition(window);
 
-
         sf::Event event;
+
+        // when there are events that need to be handled, they are
 
         while (window.pollEvent(event))
         {
@@ -47,6 +52,7 @@ int main() {
             }
         }
 
+        // drawing the graphics, i.e. the gui and the Sudoku TODO: GUI
 
         window.clear();
 
