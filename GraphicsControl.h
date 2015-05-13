@@ -10,7 +10,7 @@
 
 struct debugText {
 private:
-    sf::Text debugCon[3];
+    sf::Text debugCon[4];
     sf::Font font;
 
 public:

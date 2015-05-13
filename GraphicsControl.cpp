@@ -7,16 +7,17 @@
 // init
 debugText::debugText() {
     font.loadFromFile(SOURCES"DejaVuSans.ttf");
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         debugCon[i].setFont(font);
-        debugCon[i].setCharacterSize(9);
-        debugCon[i].setPosition(20, 510 + i * 12);
-        debugCon[i].setString("Test");
+        debugCon[i].setCharacterSize(8);
+        debugCon[i].setPosition(10, 510 + i * 10);
+        debugCon[i].setString("Console init, please wait .... ");
     }
 }
 
 
 void debugText::add(std::string text) {
+    debugCon[3].setString(debugCon[2].getString() );
     debugCon[2].setString(debugCon[1].getString() );
     debugCon[1].setString(debugCon[0].getString() );
     debugCon[0].setString(text);
@@ -26,7 +27,7 @@ void debugText::add(std::string text) {
 
 // drawing the debugTexts
 void debugText::draw(sf::RenderWindow *window) {
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         window->draw(debugCon[i]);
     }
 }
@@ -34,6 +35,7 @@ void debugText::draw(sf::RenderWindow *window) {
 // setting the @param window for drawing on it later on
 void GraphicsControl::setWindow(sf::RenderWindow *window) {
     GraphicsControl::window = window;
+    out("Window set ...");
 }
 
 
@@ -44,6 +46,7 @@ void GraphicsControl::createGui() {
     text.setCharacterSize(20);
     text.setPosition(200, 6);
     text.setString("Solve  -  Create");
+    out("GUI created ...");
 }
 
 
@@ -51,8 +54,12 @@ void GraphicsControl::createGui() {
 void GraphicsControl::select(FIELD *field) {
     hasSelected = field != NULL;
 
-    if (hasSelected)
+    if (hasSelected) {
         selected = field;
+        out("Selected Field: " + std::to_string(field->Index)
+            + " Cluster: " + std::to_string(field->getClusterNum() ) );
+    }
+
 }
 
 
@@ -70,36 +77,38 @@ bool GraphicsControl::isSelected() {
 
 // handles the @param pressed key (only numkeys though)
 void GraphicsControl::handleKeyCode(sf::Keyboard::Key pressed) {
-    if (sf::Keyboard::Key::Num0 == pressed
-        || sf::Keyboard::Key::Numpad0 == pressed)
-        selected->setNum(0);
-    if (sf::Keyboard::Key::Num1 == pressed
-        || sf::Keyboard::Key::Numpad1 == pressed)
-        selected->setNum(1);
-    if (sf::Keyboard::Key::Num2 == pressed
-        || sf::Keyboard::Key::Numpad2 == pressed)
-        selected->setNum(2);
-    if (sf::Keyboard::Key::Num3 == pressed
-        || sf::Keyboard::Key::Numpad3 == pressed)
-        selected->setNum(3);
-    if (sf::Keyboard::Key::Num4 == pressed
-        || sf::Keyboard::Key::Numpad4 == pressed)
-        selected->setNum(4);
-    if (sf::Keyboard::Key::Num5 == pressed
-        || sf::Keyboard::Key::Numpad5 == pressed)
-        selected->setNum(5);
-    if (sf::Keyboard::Key::Num6 == pressed
-        || sf::Keyboard::Key::Numpad6 == pressed)
-        selected->setNum(6);
-    if (sf::Keyboard::Key::Num7 == pressed
-        || sf::Keyboard::Key::Numpad7 == pressed)
-        selected->setNum(7);
-    if (sf::Keyboard::Key::Num8 == pressed
-        || sf::Keyboard::Key::Numpad8 == pressed)
-        selected->setNum(8);
-    if (sf::Keyboard::Key::Num9 == pressed
-        || sf::Keyboard::Key::Numpad9 == pressed)
-        selected->setNum(9);
+    if (selected != NULL) {
+        if (sf::Keyboard::Key::Num0 == pressed
+            || sf::Keyboard::Key::Numpad0 == pressed)
+            selected->setNum(0);
+        if (sf::Keyboard::Key::Num1 == pressed
+            || sf::Keyboard::Key::Numpad1 == pressed)
+            selected->setNum(1);
+        if (sf::Keyboard::Key::Num2 == pressed
+            || sf::Keyboard::Key::Numpad2 == pressed)
+            selected->setNum(2);
+        if (sf::Keyboard::Key::Num3 == pressed
+            || sf::Keyboard::Key::Numpad3 == pressed)
+            selected->setNum(3);
+        if (sf::Keyboard::Key::Num4 == pressed
+            || sf::Keyboard::Key::Numpad4 == pressed)
+            selected->setNum(4);
+        if (sf::Keyboard::Key::Num5 == pressed
+            || sf::Keyboard::Key::Numpad5 == pressed)
+            selected->setNum(5);
+        if (sf::Keyboard::Key::Num6 == pressed
+            || sf::Keyboard::Key::Numpad6 == pressed)
+            selected->setNum(6);
+        if (sf::Keyboard::Key::Num7 == pressed
+            || sf::Keyboard::Key::Numpad7 == pressed)
+            selected->setNum(7);
+        if (sf::Keyboard::Key::Num8 == pressed
+            || sf::Keyboard::Key::Numpad8 == pressed)
+            selected->setNum(8);
+        if (sf::Keyboard::Key::Num9 == pressed
+            || sf::Keyboard::Key::Numpad9 == pressed)
+            selected->setNum(9);
+    } else out("NO SELECTED FIELD");
 }
 
 
@@ -113,6 +122,7 @@ void GraphicsControl::drawGui() {
 // adding the @param text to the output
 void GraphicsControl::out(std::string text) {
     dbg.add(text);
+    std::cout << "from Console: " << text << std::endl;
 }
 
 

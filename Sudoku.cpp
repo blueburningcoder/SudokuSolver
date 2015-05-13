@@ -89,6 +89,10 @@ void FIELD::update() {
 
 // setting the number to @param number
 void FIELD::setNum(int number) {
+
+    sudoku->out("Setting " + std::to_string(number) + " at "
+                + std::to_string(Index) + ", Cluster: " + std::to_string(ClusterNum) );
+
     num = (NUMBERS) number;
 
     if (number % 10 == number && num != NOTHING)
@@ -210,6 +214,8 @@ Sudoku::Sudoku(GraphicsControl* graphicsControl) {
     setNeighbours();
 
     std::cout << "Finished Sudoku init" << std::endl;
+
+    out("Created Sudoku, all ready!");
 
 }
 
