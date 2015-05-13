@@ -1,5 +1,6 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
+#include <thread>
 #include "GraphicsControl.h"
 #include "Sudoku.h"
 
@@ -63,6 +64,8 @@ int main() {
         window.display();
         std::cout << "Frame: " << Frame << std::endl;
         Frame++;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100) );
     }
 
     return 0;

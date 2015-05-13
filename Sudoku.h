@@ -8,6 +8,7 @@
 #include <iostream>
 
 #define SOURCES "/usr/resources_coding/"
+#define DEBUG false
 
 class Sudoku;
 
@@ -69,15 +70,15 @@ private:
     sf::Font font;
 
     void setNeighbours(); // setting the neighbours of the fields
-public:
 
+public:
     Sudoku();
     void draw(sf::RenderWindow *window); // drawing all the fields on the @param window
     void setNum(int i, int j, int number); // setting to the field at @param i and j the @param number
     FIELD *getClicked(int x, int y); // @return the field that got clicked (if there is one) or NULL
     void Update(); // updating all the fields
-    // FIELD *getNextFromCluster(int index, int Cluster); // @return the next field starting from @param index from the @param Cluster
-    // int getLowestIndexInCluster(int Cluster); // @return the lowest index in the @param cluster
+    FIELD *getNextFromCluster(int index, int Cluster); // @return the next field starting from @param index from the @param Cluster
+    int getLowestIndexInCluster(int Cluster); // @return the lowest index in the @param cluster
 
 };
 

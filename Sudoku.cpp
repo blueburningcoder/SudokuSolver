@@ -73,6 +73,16 @@ void FIELD::update() {
                 next = next->getNeighbour(dir);
             }
         }
+        int lowestIndInCluster = sudoku->getLowestIndexInCluster(ClusterNum);
+        for (int i = 0; i < 9; i++) {
+            FIELD* next = sudoku->getNextFromCluster(lowestIndInCluster, ClusterNum);
+            if (next != NULL) {
+                NUMBERS othNum = next->getNum();
+                if (othNum != NOTHING)
+                    removePossible(othNum);
+                lowestIndInCluster = next->Index;
+            }
+        }
     }
 }
 
@@ -256,20 +266,25 @@ FIELD* Sudoku::getClicked(int x, int y) {
 // lets update all the fields for themselves
 void Sudoku::Update() {
     // TODO: Multithreading potential
-    for (int i = 0; i < 9; i++) {
+
+
+    for (int i = 0; i < 9; i++)
         for (int j = 0; j < 9; j++)
             fields[i][j].update();
-    }
 }
 
-/*
 
 // @return the next field starting fom @param index from the @param Cluster
 FIELD* Sudoku::getNextFromCluster(int index, int Cluster) {
     int currentInd = index;
+
+
+
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
-            // ... FIXME: saving lowest num and comparing
+            if (fields[i][j].getClusterNum() == Cluster && fields[i][j].Index > index) {
+                return &fields[i][j];
+            }
         }
     }
 
@@ -291,4 +306,4 @@ int Sudoku::getLowestIndexInCluster(int Cluster) {
 }
 
 
-*/
+
