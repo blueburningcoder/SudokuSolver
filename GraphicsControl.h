@@ -8,7 +8,17 @@
 
 #define SOURCES "/usr/resources_coding/"
 
+struct debugText {
+private:
+    sf::Text debugCon[3];
+    sf::Font font;
 
+public:
+    debugText();
+    void add(std::string text);
+    void draw(sf::RenderWindow *window);
+
+};
 
 class GraphicsControl {
 private:
@@ -17,6 +27,7 @@ private:
     sf::Text text;
     FIELD *selected = NULL;
     bool hasSelected = false;
+    debugText dbg;
 
 public:
     GraphicsControl(){}
@@ -27,6 +38,7 @@ public:
     void handleKeyCode(sf::Keyboard::Key pressed); // handling the numkeys pressed
     void createGui();           // TODO: creates the GUI
     void drawGui();             // drawing the gui
+    void out(std::string text); // drawing it to the output-console
 };
 
 

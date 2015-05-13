@@ -1,5 +1,5 @@
 #include "Sudoku.h"
-
+#include "GraphicsControl.h"
 
 
 
@@ -156,7 +156,8 @@ int FIELD::getClusterNum() {
 
 
 // initiating the Sudoku, can be drawn from that point forward
-Sudoku::Sudoku() {
+Sudoku::Sudoku(GraphicsControl* graphicsControl) {
+    control = graphicsControl;
     Ground.setPosition(x - 4, y - 4);
     Ground.setSize(sf::Vector2f(460, 460) );
     Ground.setFillColor(sf::Color::White);
@@ -305,5 +306,11 @@ int Sudoku::getLowestIndexInCluster(int Cluster) {
     return lowestNum;
 }
 
+
+
+// logging to the console
+void Sudoku::out(std::string text) {
+    control->out(text);
+}
 
 

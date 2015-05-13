@@ -17,7 +17,7 @@ int main() {
 
     // creating the Sudoku, the FrameCounter and the mousePosition
 
-    Sudoku sud;
+    Sudoku sud(&control);
 
     int Frame = 0;
 

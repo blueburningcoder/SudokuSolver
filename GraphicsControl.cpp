@@ -4,6 +4,32 @@
 
 
 
+// init
+debugText::debugText() {
+    font.loadFromFile(SOURCES"DejaVuSans.ttf");
+    for (int i = 0; i < 3; i++) {
+        debugCon[i].setFont(font);
+        debugCon[i].setCharacterSize(9);
+        debugCon[i].setPosition(20, 510 + i * 12);
+        debugCon[i].setString("Test");
+    }
+}
+
+
+void debugText::add(std::string text) {
+    debugCon[2].setString(debugCon[1].getString() );
+    debugCon[1].setString(debugCon[0].getString() );
+    debugCon[0].setString(text);
+
+}
+
+
+// drawing the debugTexts
+void debugText::draw(sf::RenderWindow *window) {
+    for (int i = 0; i < 3; i++) {
+        window->draw(debugCon[i]);
+    }
+}
 
 // setting the @param window for drawing on it later on
 void GraphicsControl::setWindow(sf::RenderWindow *window) {
@@ -16,8 +42,8 @@ void GraphicsControl::createGui() {
     font.loadFromFile(SOURCES"DejaVuSans.ttf");
     text.setFont(font);
     text.setCharacterSize(20);
-    text.setPosition(20, 20);
-    text.setString("This is an Example 1 2 3 4 5 6 7 8 9 0");
+    text.setPosition(200, 6);
+    text.setString("Solve  -  Create");
 }
 
 
@@ -80,5 +106,13 @@ void GraphicsControl::handleKeyCode(sf::Keyboard::Key pressed) {
 // drawing the gui
 void GraphicsControl::drawGui() {
     window->draw(text);
+    dbg.draw(window);
 }
+
+
+// adding the @param text to the output
+void GraphicsControl::out(std::string text) {
+    dbg.add(text);
+}
+
 
