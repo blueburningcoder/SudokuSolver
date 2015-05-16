@@ -95,7 +95,9 @@ void FIELD::autoSolve() {
 
         lookForMissing();
 
-        lookForMust();
+        lookForMustInCluster();
+
+        lookForMustDir();
 
     }
 }
@@ -103,33 +105,57 @@ void FIELD::autoSolve() {
 
 // looks if a number is missing in a row or the Cluster
 void FIELD::lookForMissing() {
-    int possnum = 0;
+    int posscount = 0;
     int ind = 0;
     for (int i = 0; i < 9; i++)
         if (possible[i]) {
             ind = i;
-            possnum++;
+            posscount++;
         }
 
-    if (possnum == 1)
+    if (posscount == 1)
         setNum(ind + 1);
 }
 
 
-void FIELD::lookForMust() {
+// searches for numbers whose only possibility left is this field
+// FIXME: might still be missing sth since it doesn't see some things every now and thenlookForMust
+void FIELD::lookForMustInCluster() {
+    int lowest = sudoku->getLowestIndexInCluster(ClusterNum), posscount = 0;
 
-    for (int num = 1; num < 10; num++) {
-        int lowNum = sudoku->getLowestIndexInCluster(ClusterNum), poss = 0;
-        for (int i = 0; i < 9; i++) {
-            FIELD *tmp = sudoku->getFromCluster(lowNum, ClusterNum);
-            if (tmp != NULL) {
-                if (tmp->isPossible( (NUMBERS) num) && tmp->getNum() == NOTHING )
-                    poss++;
-                lowNum ++;
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (sudoku->getFromCluster(lowest + j, ClusterNum)->possible[i]
+                    && sudoku->getFromCluster(lowest + j, ClusterNum)->getNum() == NOTHING )
+                posscount++;
+        }
+        if (posscount == 1 && possible[i])
+            setNum(i + 1);
+    }
+}
+
+
+// searching for a number, which only possible place in this row / column is this field
+void FIELD::lookForMustDir() {
+
+    for (int i = 0; i < 9; i++) {
+        int columnposs = 0, rowposs = 0;
+        for (int dir = 0; dir < 4; dir++) {
+            FIELD *tmp = getNeighbour(dir);
+            bool ongoing = isNeighbour(dir);
+
+            while (ongoing) {
+
+                if (tmp->possible[i] && tmp->getNum() == NOTHING)
+                    dir % 2 == 0 ? columnposs++ : rowposs++;
+
+                ongoing = tmp->isNeighbour(dir);
+                tmp = tmp->getNeighbour(dir);
             }
         }
-        if (poss == 1 && possible[num - 1])
-            setNum(num);
+
+        if ( (columnposs == 0 || rowposs == 0) && possible[i] )
+            setNum(i + 1);
     }
 }
 

@@ -44,7 +44,8 @@ struct FIELD {
 
     void autoSolve(); // automatically solves itself over time
     void lookForMissing();
-    void lookForMust();
+    void lookForMustInCluster();
+    void lookForMustDir();
 
     bool isPossible(NUMBERS num); // returns if @param num is possible or not
     void setNum(int number); // setting the @param number
