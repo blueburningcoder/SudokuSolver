@@ -16,6 +16,7 @@ debugText::debugText() {
 }
 
 
+// adding the @param text to the console as newest message
 void debugText::add(std::string text) {
     debugCon[3].setString(debugCon[2].getString() );
     debugCon[2].setString(debugCon[1].getString() );
@@ -32,10 +33,16 @@ void debugText::draw(sf::RenderWindow *window) {
     }
 }
 
+
 // setting the @param window for drawing on it later on
 void GraphicsControl::setWindow(sf::RenderWindow *window) {
     GraphicsControl::window = window;
     out("Window set ...");
+}
+
+
+void GraphicsControl::addSudoku(Sudoku* sud) {
+    sudoku = sud;
 }
 
 
@@ -46,6 +53,15 @@ void GraphicsControl::createGui() {
     text.setCharacterSize(20);
     text.setPosition(200, 6);
     text.setString("Solve  -  Create");
+
+    solve.setPosition(198, 6);
+    solve.setSize(sf::Vector2f(60, 24) );
+    solve.setFillColor(sf::Color(20,20,20) );
+
+    create.setPosition(283, 6);
+    create.setSize(sf::Vector2f(70, 24) );
+    create.setFillColor(sf::Color(20,20,20) );
+
     out("GUI created ...");
 }
 
@@ -112,8 +128,27 @@ void GraphicsControl::handleKeyCode(sf::Keyboard::Key pressed) {
 }
 
 
+void GraphicsControl::testClicked(int x, int y) {
+    if (x >= solve.getPosition().x && x <= solve.getPosition().x + solve.getSize().x &&
+            y >= solve.getPosition().y && y <= solve.getPosition().y + solve.getSize().y ) {
+        std::string state = sudoku->autosolve ? "false" : "true";
+        out("SOLVE: set to " + state);
+        sudoku->autosolve = !sudoku->autosolve;
+    }
+
+    if (x >= create.getPosition().x && x <= create.getPosition().x + create.getSize().x &&
+            y >= create.getPosition().y && y <= create.getPosition().y + create.getSize().y )
+        out("TODO: CREATE");
+
+
+
+}
+
+
 // drawing the gui
 void GraphicsControl::drawGui() {
+    window->draw(create);
+    window->draw(solve);
     window->draw(text);
     dbg.draw(window);
 }
@@ -122,7 +157,7 @@ void GraphicsControl::drawGui() {
 // adding the @param text to the output
 void GraphicsControl::out(std::string text) {
     dbg.add(text);
-    std::cout << "from Console: " << text << std::endl;
+    std::cout << "from Output: " << text << std::endl;
 }
 
 

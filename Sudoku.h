@@ -26,7 +26,7 @@ struct FIELD {
     sf::RectangleShape Tile;
     FIELD *Neighbours[4] = {};
     NUMBERS num = NOTHING;
-    std::vector<bool> possible;
+    bool possible[9];
     sf::Font font;
     sf::Text Nums[10];
     Sudoku *sudoku;
@@ -42,6 +42,11 @@ struct FIELD {
     void draw(sf::RenderWindow *window); // drawing the field
     void update(); // updates the field TODO: multithreading
 
+    void autoSolve(); // automatically solves itself over time
+    void lookForMissing();
+    void lookForMust();
+
+    bool isPossible(NUMBERS num); // returns if @param num is possible or not
     void setNum(int number); // setting the @param number
     void removePossible(NUMBERS alreadyNum); // removing the possibility of the @param alreadyNum
     void setPossible(NUMBERS possNum); // setting possNum possible
@@ -58,7 +63,7 @@ struct FIELD {
 private:
     bool isInit = false; // if the field is initiated yet
     int xPos, yPos;     // the relative coordinates
-    int ClusterNum;
+    int ClusterNum;     // the ClusterID
 };
 
 
@@ -81,7 +86,12 @@ public:
     void Update(); // updating all the fields
     FIELD *getNextFromCluster(int index, int Cluster); // @return the next field starting from @param index from the @param Cluster
     int getLowestIndexInCluster(int Cluster); // @return the lowest index in the @param cluster
+    bool alreadyInCluster(int Cluster, NUMBERS num); // @return if the number is in the Cluster already
+    bool alreadyInColumnOrRow(FIELD* field, NUMBERS num); // @return if the number is a Column or row
     void out(std::string text);      // logging to the console
+
+    bool autosolve = true;
+    int wait = 0;
 };
 
 

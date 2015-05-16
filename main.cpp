@@ -45,8 +45,10 @@ int main() {
                     } else
                         control.handleKeyCode(event.key.code);
                 case sf::Event::MouseButtonPressed:
-                    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) )
-                        control.select(sud.getClicked(mousePos.x, mousePos.y) );
+                    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) ) {
+                        control.select(sud.getClicked(mousePos.x, mousePos.y));
+                        control.testClicked(mousePos.x, mousePos.y);
+                    }
                     break;
                 default:
                     std::cout << "uncovered event" << std::endl;
@@ -65,7 +67,7 @@ int main() {
         std::cout << "Frame: " << Frame << std::endl;
         Frame++;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(30) );
+        // std::this_thread::sleep_for(std::chrono::milliseconds(30) );
     }
 
     return 0;

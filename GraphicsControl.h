@@ -28,15 +28,19 @@ private:
     FIELD *selected = NULL;
     bool hasSelected = false;
     debugText dbg;
+    Sudoku *sudoku;
+    sf::RectangleShape solve, create;
 
 public:
     GraphicsControl(){}
     void setWindow(sf::RenderWindow *window); // setting the @param window to draw on later
+    void addSudoku(Sudoku* sud); // adding the sudoku for later modification
     void select(FIELD *field);  // selecting the @param FIELD for changing its valuse
     FIELD *getSelected();       // returns the previously selected FIELD
     bool isSelected();          // returns if there is a FIELD selected
     void handleKeyCode(sf::Keyboard::Key pressed); // handling the numkeys pressed
-    void createGui();           // TODO: creates the GUI
+    void testClicked(int x, int y); // testing if create or solve got clicked
+    void createGui();           // creates the Gui
     void drawGui();             // drawing the gui
     void out(std::string text); // drawing it to the output-console
 };

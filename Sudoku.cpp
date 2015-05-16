@@ -3,7 +3,7 @@
 
 
 
-// initiatiing all necessary information for later reference
+// initiating all necessary information for later reference
 void FIELD::init(int x, int y, sf::Font newFont, int Cluster,
                  Sudoku *sud, int index) {
     font = newFont;
@@ -34,7 +34,7 @@ void FIELD::init(int x, int y, sf::Font newFont, int Cluster,
     Nums[9].setString(std::to_string(index) );
 
     for (int i = 0; i < 9; i++) {
-        possible.push_back(true);
+        possible[i] = true;
     }
 
     isInit = true;
@@ -83,9 +83,61 @@ void FIELD::update() {
                 lowestIndInCluster = next->Index;
             }
         }
+        if (sudoku->autosolve && !sudoku->wait)
+            autoSolve();
     }
 }
 
+
+// solving itself over time if possible
+void FIELD::autoSolve() {
+    if (num == NOTHING) {
+
+        lookForMissing();
+
+        // lookForMust();
+
+    }
+}
+
+
+// looks if a number is missing in a row or the Cluster
+void FIELD::lookForMissing() {
+    int possnum = 0;
+    int ind = 0;
+    for (int i = 0; i < 9; i++)
+        if (possible[i]) {
+            ind = i;
+            possnum++;
+        }
+
+    if (possnum == 1)
+        setNum(ind + 1);
+}
+
+
+void FIELD::lookForMust() {
+
+    for (int num = 1; num < 10; num++) {
+        int lowNum = sudoku->getLowestIndexInCluster(ClusterNum), poss = 0;
+        for (int i = 0; i < 9; i++) {
+            FIELD *tmp = sudoku->getNextFromCluster(lowNum, ClusterNum);
+            if (tmp != NULL) {
+                if (tmp->isPossible( (NUMBERS) num) && tmp->getNum() == NOTHING )
+                    poss++;
+                lowNum = tmp->Index;
+            }
+        }
+        if (poss == 1 && possible[num - 1])
+            setNum(num);
+    }
+}
+
+
+// returns if @param num is possible or nott
+bool FIELD::isPossible(NUMBERS num) {
+	return possible[(int) num - 1];
+}
 
 // setting the number to @param number
 void FIELD::setNum(int number) {
@@ -93,23 +145,27 @@ void FIELD::setNum(int number) {
     sudoku->out("Setting " + std::to_string(number) + " at "
                 + std::to_string(Index) + ", Cluster: " + std::to_string(ClusterNum) );
 
-    num = (NUMBERS) number;
+    if (number % 10 == number &&
+            ( (!sudoku->alreadyInCluster(ClusterNum, (NUMBERS) number) && !sudoku->alreadyInColumnOrRow(this, (NUMBERS) number) ) || number == 0 ) ) {
+        num = (NUMBERS) number;
 
-    if (number % 10 == number && num != NOTHING)
-        Nums[9].setString(std::to_string(num));
+        if (num != NOTHING)
+            Nums[9].setString(std::to_string(num));
+        sudoku->wait = 2;
+    }
 }
 
 
 // removing the possibility of the @param alredyNum
 void FIELD::removePossible(NUMBERS alreadyNum) {
-    possible[(int) alreadyNum] = false;
+    possible[(int) alreadyNum - 1] = false;
     Nums[(int) alreadyNum - 1].setColor(sf::Color(200, 20, 20, 150) );
 }
 
 
 // setting @param possNum possible (if it wasn't before)
 void FIELD::setPossible(NUMBERS possNum) {
-    possible[(int) possNum] = true;
+    possible[(int) possNum - 1] = true;
     Nums[(int) possNum - 1].setColor(sf::Color(20, 200, 20) );
 }
 
@@ -162,6 +218,7 @@ int FIELD::getClusterNum() {
 // initiating the Sudoku, can be drawn from that point forward
 Sudoku::Sudoku(GraphicsControl* graphicsControl) {
     control = graphicsControl;
+    control->addSudoku(this);
     Ground.setPosition(x - 4, y - 4);
     Ground.setSize(sf::Vector2f(460, 460) );
     Ground.setFillColor(sf::Color::White);
@@ -171,8 +228,8 @@ Sudoku::Sudoku(GraphicsControl* graphicsControl) {
 
     std::cout << "setting possible" << std::endl;
 
-    for (int i = 1; i < 10; i++) {
-        tmp2.possible.push_back( (NUMBERS) i);
+    for (int i = 1; i < 9; i++) {
+        tmp2.possible[i] = true;
     }
 
     std::cout << "pushing back tmp1" << std::endl;
@@ -278,13 +335,15 @@ void Sudoku::Update() {
     for (int i = 0; i < 9; i++)
         for (int j = 0; j < 9; j++)
             fields[i][j].update();
+
+    if (wait >= 1)
+        wait--;
 }
 
 
 // @return the next field starting fom @param index from the @param Cluster
 FIELD* Sudoku::getNextFromCluster(int index, int Cluster) {
     int currentInd = index;
-
 
 
     for (int i = 0; i < 9; i++) {
@@ -312,6 +371,38 @@ int Sudoku::getLowestIndexInCluster(int Cluster) {
     return lowestNum;
 }
 
+
+bool Sudoku::alreadyInCluster(int Cluster, NUMBERS num) {
+    int lowest = getLowestIndexInCluster(Cluster);
+    for (int i = 0; i < 9; i++) {
+        FIELD* tmp = getNextFromCluster(lowest, Cluster);
+        if (tmp != NULL) {
+            if (num == tmp->getNum() )
+                return true;
+            lowest = tmp->Index;
+        }
+    }
+
+    return false;
+}
+
+
+bool Sudoku::alreadyInColumnOrRow(FIELD *field, NUMBERS num) {
+
+    for (int dir = 0; dir < 4 && field->isNeighbour(dir); dir ++) {
+        FIELD *tmp = field->getNeighbour(dir);
+        bool ongoing = true;
+        while (ongoing) {
+            NUMBERS othNum = tmp->getNum();
+            if (num == othNum)
+                return true;
+            ongoing = tmp->isNeighbour(dir);
+            tmp = tmp->getNeighbour(dir);
+        }
+    }
+
+    return false;
+}
 
 
 // logging to the console
