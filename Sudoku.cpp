@@ -73,14 +73,14 @@ void FIELD::update() {
                 next = next->getNeighbour(dir);
             }
         }
-        int lowestIndInCluster = sudoku->getLowestIndexInCluster(ClusterNum) - 1;
+        int currentInd = sudoku->getLowestIndexInCluster(ClusterNum);
         for (int i = 0; i < 9; i++) {
-            FIELD* next = sudoku->getNextFromCluster(lowestIndInCluster, ClusterNum);
+            FIELD* next = sudoku->getFromCluster(currentInd, ClusterNum);
             if (next != NULL) {
                 NUMBERS othNum = next->getNum();
                 if (othNum != NOTHING)
                     removePossible(othNum);
-                lowestIndInCluster = next->Index;
+                currentInd++;
             }
         }
         if (sudoku->isAutoSolve() && !sudoku->waits() )
@@ -119,13 +119,13 @@ void FIELD::lookForMissing() {
 void FIELD::lookForMust() {
 
     for (int num = 1; num < 10; num++) {
-        int lowNum = sudoku->getLowestIndexInCluster(ClusterNum) - 1, poss = 0;
+        int lowNum = sudoku->getLowestIndexInCluster(ClusterNum), poss = 0;
         for (int i = 0; i < 9; i++) {
-            FIELD *tmp = sudoku->getNextFromCluster(lowNum, ClusterNum);
+            FIELD *tmp = sudoku->getFromCluster(lowNum, ClusterNum);
             if (tmp != NULL) {
                 if (tmp->isPossible( (NUMBERS) num) && tmp->getNum() == NOTHING )
                     poss++;
-                lowNum = tmp->Index;
+                lowNum ++;
             }
         }
         if (poss == 1 && possible[num - 1])
@@ -145,8 +145,10 @@ void FIELD::setNum(int number) {
     sudoku->out("Setting " + std::to_string(number) + " at "
                 + std::to_string(Index) + ", Cluster: " + std::to_string(ClusterNum) );
 
-    if (number % 10 == number &&
-            ( (!sudoku->alreadyInCluster(ClusterNum, (NUMBERS) number) && !sudoku->alreadyInColumnOrRow(this, (NUMBERS) number) ) || number == 0 ) ) {
+    if (number % 10 == number
+            && ( (!sudoku->alreadyInCluster(ClusterNum, (NUMBERS) number)
+            && !sudoku->alreadyInColumnOrRow(this, (NUMBERS) number) )
+            || number == 0 ) ) {
         num = (NUMBERS) number;
 
         if (num != NOTHING)
@@ -223,6 +225,10 @@ void FIELD::reset() {
 
 
 
+//////////////////////////////////////////////////////////////////////////
+////                            Sudouku
+//////////////////////////////////////////////////////////////////////////
+
 
 
 // initiating the Sudoku, can be drawn from that point forward
@@ -265,7 +271,7 @@ Sudoku::Sudoku(GraphicsControl* graphicsControl) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 fields[i + (num / 3) * 3][j + (num % 3) * 3].init(i * 50 + moveX,
-                        j * 50 + moveY, font, num + 1, this ,
+                        j * 50 + moveY, font, num, this ,
                         j + i * 3 + num * 9);
             }
         }
@@ -346,52 +352,41 @@ void Sudoku::Update() {
         for (int j = 0; j < 9; j++)
             fields[i][j].update();
 
-    if (wait >= 1)
+    if (wait > 0)
         wait--;
 }
 
 
 // @return the next field starting fom @param index from the @param Cluster
-FIELD* Sudoku::getNextFromCluster(int index, int Cluster) {
+FIELD* Sudoku::getFromCluster(int index, int Cluster) {
 
-    for (int i = 0; i < 9; i++)
-        for (int j = 0; j < 9; j++)
-            if (fields[i][j].getClusterNum() == Cluster && fields[i][j].Index > index)
-                return &fields[i][j];
+    index %= 9;
+    return &fields[(Cluster / 3) * 3 + index / 3][(Cluster % 3) * 3 + index % 3];
 
-    return NULL;
 }
 
 
 // @return the field with the @param index
 FIELD *Sudoku::getField(int index) {
 
-    for (int i = 0; i < 9; i++)
-        for (int j = 0; j < 9; j++)
-            if (fields[i][j].Index == index)
-                return &fields[i][j];
-
-    return NULL;
+    return getFromCluster(index, index / 9);
 }
 
 
 // @return the lowest Num from the @param Cluster
-int Sudoku::getLowestIndexInCluster(int Cluster) {
-    for (int i = 0; i < 9; i++)
-        if (fields[(i % 3) * 3][(i / 3) * 3].getClusterNum() == Cluster)
-            return fields[(i % 3) * 3][(i / 3) * 3].Index;
-    return 0;
+int Sudoku::getLowestIndexInCluster(int Cluster){
+    return fields[(Cluster / 3) * 3][(Cluster % 3) * 3].Index;
 }
 
 
 bool Sudoku::alreadyInCluster(int Cluster, NUMBERS num) {
-    int lowest = getLowestIndexInCluster(Cluster) - 1;
+    int lowest = getLowestIndexInCluster(Cluster);
     for (int i = 0; i < 9; i++) {
-        FIELD* tmp = getNextFromCluster(lowest, Cluster);
+        FIELD* tmp = getFromCluster(lowest, Cluster);
         if (tmp != NULL) {
             if (num == tmp->getNum() )
                 return true;
-            lowest = tmp->Index;
+            lowest ++;
         }
     }
 

@@ -75,7 +75,7 @@ private:
     std::vector<std::vector<FIELD> > fields;
     sf::RectangleShape Ground;
     sf::Font font;
-    bool autosolve = true;
+    bool autosolve = false;
     int wait = 0;
 
     GraphicsControl *control;
@@ -88,7 +88,7 @@ public:
     void setNum(int i, int j, int number); // setting to the field at @param i and j the @param number
     FIELD *getClicked(int x, int y); // @return the field that got clicked (if there is one) or NULL
     void Update(); // updating all the fields
-    FIELD *getNextFromCluster(int index, int Cluster); // @return the next field starting from @param index from the @param Cluster
+    FIELD *getFromCluster(int index, int Cluster); // @return the next field starting from @param index from the @param Cluster
     FIELD *getField(int index); // @returns the field with the @param index
     int getLowestIndexInCluster(int Cluster); // @return the lowest index in the @param cluster
     bool alreadyInCluster(int Cluster, NUMBERS num); // @return if the number is in the Cluster already
