@@ -75,6 +75,8 @@ private:
     std::vector<std::vector<FIELD> > fields;
     sf::RectangleShape Ground;
     sf::Font font;
+    bool autosolve = true;
+    int wait = 0;
 
     GraphicsControl *control;
 
@@ -87,14 +89,16 @@ public:
     FIELD *getClicked(int x, int y); // @return the field that got clicked (if there is one) or NULL
     void Update(); // updating all the fields
     FIELD *getNextFromCluster(int index, int Cluster); // @return the next field starting from @param index from the @param Cluster
+    FIELD *getField(int index); // @returns the field with the @param index
     int getLowestIndexInCluster(int Cluster); // @return the lowest index in the @param cluster
     bool alreadyInCluster(int Cluster, NUMBERS num); // @return if the number is in the Cluster already
     bool alreadyInColumnOrRow(FIELD* field, NUMBERS num); // @return if the number is a Column or row
     void out(std::string text);      // logging to the console
+    bool isAutoSolve(); // @returns if the sudoku is in AutoSolve - state
+    void changeAutoSolve(); // changes the state of AutoSolve
+    bool waits();       // @returns if the sudoku is currently waiting, since something got changed
+    void setWaiting();  // setting the wait to two, so that every field has the chance to update at least once
     void reset();       // resetting the Sudoku to a completely empty one
-
-    bool autosolve = true;
-    int wait = 0;
 };
 
 

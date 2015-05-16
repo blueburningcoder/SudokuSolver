@@ -135,9 +135,9 @@ void GraphicsControl::handleKeyCode(sf::Keyboard::Key pressed) {
 void GraphicsControl::testClicked(int x, int y) {
     if (x >= solve.getPosition().x && x <= solve.getPosition().x + solve.getSize().x &&
             y >= solve.getPosition().y && y <= solve.getPosition().y + solve.getSize().y ) {
-        std::string state = sudoku->autosolve ? "false" : "true";
+        std::string state = sudoku->isAutoSolve() ? "false" : "true";
         out("SOLVE: set to " + state);
-        sudoku->autosolve = !sudoku->autosolve;
+        sudoku->changeAutoSolve();
     }
 
     if (x >= create.getPosition().x && x <= create.getPosition().x + create.getSize().x &&

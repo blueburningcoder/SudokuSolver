@@ -73,7 +73,7 @@ void FIELD::update() {
                 next = next->getNeighbour(dir);
             }
         }
-        int lowestIndInCluster = sudoku->getLowestIndexInCluster(ClusterNum);
+        int lowestIndInCluster = sudoku->getLowestIndexInCluster(ClusterNum) - 1;
         for (int i = 0; i < 9; i++) {
             FIELD* next = sudoku->getNextFromCluster(lowestIndInCluster, ClusterNum);
             if (next != NULL) {
@@ -83,7 +83,7 @@ void FIELD::update() {
                 lowestIndInCluster = next->Index;
             }
         }
-        if (sudoku->autosolve && !sudoku->wait)
+        if (sudoku->isAutoSolve() && !sudoku->waits() )
             autoSolve();
     }
 }
@@ -119,7 +119,7 @@ void FIELD::lookForMissing() {
 void FIELD::lookForMust() {
 
     for (int num = 1; num < 10; num++) {
-        int lowNum = sudoku->getLowestIndexInCluster(ClusterNum), poss = 0;
+        int lowNum = sudoku->getLowestIndexInCluster(ClusterNum) - 1, poss = 0;
         for (int i = 0; i < 9; i++) {
             FIELD *tmp = sudoku->getNextFromCluster(lowNum, ClusterNum);
             if (tmp != NULL) {
@@ -151,7 +151,7 @@ void FIELD::setNum(int number) {
 
         if (num != NOTHING)
             Nums[9].setString(std::to_string(num));
-        sudoku->wait = 2;
+        sudoku->setWaiting();
     }
 }
 
@@ -265,7 +265,7 @@ Sudoku::Sudoku(GraphicsControl* graphicsControl) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 fields[i + (num / 3) * 3][j + (num % 3) * 3].init(i * 50 + moveX,
-                        j * 50 + moveY, font, num, this ,
+                        j * 50 + moveY, font, num + 1, this ,
                         j + i * 3 + num * 9);
             }
         }
@@ -353,16 +353,23 @@ void Sudoku::Update() {
 
 // @return the next field starting fom @param index from the @param Cluster
 FIELD* Sudoku::getNextFromCluster(int index, int Cluster) {
-    int currentInd = index;
 
-
-    for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 9; j++) {
-            if (fields[i][j].getClusterNum() == Cluster && fields[i][j].Index > index) {
+    for (int i = 0; i < 9; i++)
+        for (int j = 0; j < 9; j++)
+            if (fields[i][j].getClusterNum() == Cluster && fields[i][j].Index > index)
                 return &fields[i][j];
-            }
-        }
-    }
+
+    return NULL;
+}
+
+
+// @return the field with the @param index
+FIELD *Sudoku::getField(int index) {
+
+    for (int i = 0; i < 9; i++)
+        for (int j = 0; j < 9; j++)
+            if (fields[i][j].Index == index)
+                return &fields[i][j];
 
     return NULL;
 }
@@ -370,20 +377,15 @@ FIELD* Sudoku::getNextFromCluster(int index, int Cluster) {
 
 // @return the lowest Num from the @param Cluster
 int Sudoku::getLowestIndexInCluster(int Cluster) {
-    int lowestNum = 0;
-    for (int i = 0; i < 9; i ++) {
-        for (int j = 0; j < 9; j ++) {
-            if (fields[i][j].getClusterNum() == Cluster && fields[i][j].Index < lowestNum)
-                lowestNum = fields[i][j].Index;
-        }
-    }
-
-    return lowestNum;
+    for (int i = 0; i < 9; i++)
+        if (fields[(i % 3) * 3][(i / 3) * 3].getClusterNum() == Cluster)
+            return fields[(i % 3) * 3][(i / 3) * 3].Index;
+    return 0;
 }
 
 
 bool Sudoku::alreadyInCluster(int Cluster, NUMBERS num) {
-    int lowest = getLowestIndexInCluster(Cluster);
+    int lowest = getLowestIndexInCluster(Cluster) - 1;
     for (int i = 0; i < 9; i++) {
         FIELD* tmp = getNextFromCluster(lowest, Cluster);
         if (tmp != NULL) {
@@ -418,6 +420,30 @@ bool Sudoku::alreadyInColumnOrRow(FIELD *field, NUMBERS num) {
 // logging to the console
 void Sudoku::out(std::string text) {
     control->out(text);
+}
+
+
+// @returns if autosolve is currently true
+bool Sudoku::isAutoSolve() {
+    return autosolve;
+}
+
+
+// changes the state of autosolve
+void Sudoku::changeAutoSolve() {
+    autosolve = !autosolve;
+}
+
+
+// @returns if autosolve is on pause right now
+bool Sudoku::waits() {
+    return wait > 0;
+}
+
+
+// setting the wait value high enough so that every field has the chance to update at least once again
+void Sudoku::setWaiting() {
+    wait += 2;
 }
 
 
