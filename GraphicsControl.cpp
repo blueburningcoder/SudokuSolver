@@ -51,16 +51,20 @@ void GraphicsControl::createGui() {
     font.loadFromFile(SOURCES"DejaVuSans.ttf");
     text.setFont(font);
     text.setCharacterSize(20);
-    text.setPosition(200, 6);
-    text.setString("Solve  -  Create");
+    text.setPosition(160, 6);
+    text.setString("Solve  -  Create  -  Reset");
 
-    solve.setPosition(198, 6);
+    solve.setPosition(158, 6);
     solve.setSize(sf::Vector2f(60, 24) );
-    solve.setFillColor(sf::Color(20,20,20) );
+    solve.setFillColor(sf::Color(20, 20, 20) );
 
-    create.setPosition(283, 6);
+    create.setPosition(243, 6);
     create.setSize(sf::Vector2f(70, 24) );
-    create.setFillColor(sf::Color(20,20,20) );
+    create.setFillColor(sf::Color(20, 20, 20) );
+
+    reset.setPosition(340, 6);
+    reset.setSize(sf::Vector2f(60, 24) );
+    reset.setFillColor(sf::Color(20, 20, 20) );
 
     out("GUI created ...");
 }
@@ -140,7 +144,9 @@ void GraphicsControl::testClicked(int x, int y) {
             y >= create.getPosition().y && y <= create.getPosition().y + create.getSize().y )
         out("TODO: CREATE");
 
-
+    if (x >= reset.getPosition().x && x <= reset.getPosition().x + reset.getSize().x &&
+            y >= reset.getPosition().y && y <= reset.getPosition().y + reset.getSize().y )
+        sudoku->reset();
 
 }
 
@@ -149,6 +155,7 @@ void GraphicsControl::testClicked(int x, int y) {
 void GraphicsControl::drawGui() {
     window->draw(create);
     window->draw(solve);
+    window->draw(reset);
     window->draw(text);
     dbg.draw(window);
 }

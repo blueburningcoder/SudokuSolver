@@ -60,6 +60,8 @@ struct FIELD {
 
     int getClusterNum(); // @return the number of the cluster
 
+    void reset();       // resetting the field now
+
 private:
     bool isInit = false; // if the field is initiated yet
     int xPos, yPos;     // the relative coordinates
@@ -89,6 +91,7 @@ public:
     bool alreadyInCluster(int Cluster, NUMBERS num); // @return if the number is in the Cluster already
     bool alreadyInColumnOrRow(FIELD* field, NUMBERS num); // @return if the number is a Column or row
     void out(std::string text);      // logging to the console
+    void reset();       // resetting the Sudoku to a completely empty one
 
     bool autosolve = true;
     int wait = 0;

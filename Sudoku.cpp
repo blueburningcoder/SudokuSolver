@@ -95,7 +95,7 @@ void FIELD::autoSolve() {
 
         lookForMissing();
 
-        // lookForMust();
+        lookForMust();
 
     }
 }
@@ -209,6 +209,16 @@ bool FIELD::isInside(int x, int y) {
 // @return the ClusterID
 int FIELD::getClusterNum() {
     return ClusterNum;
+}
+
+
+// resetting the field to as good as just created
+void FIELD::reset() {
+    num = NOTHING;
+
+    for (int i = 0; i < 9; i++) {
+        possible[i] = true;
+    }
 }
 
 
@@ -409,5 +419,21 @@ bool Sudoku::alreadyInColumnOrRow(FIELD *field, NUMBERS num) {
 void Sudoku::out(std::string text) {
     control->out(text);
 }
+
+
+// resetting the Sudoku so that it is completely empty afterwards
+void Sudoku::reset() {
+
+    for (std::vector<FIELD>& column : fields) {
+        for (FIELD& field : column) {
+            field.reset();
+        }
+    }
+
+    out("Reset");
+
+}
+
+
 
 

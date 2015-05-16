@@ -29,7 +29,7 @@ private:
     bool hasSelected = false;
     debugText dbg;
     Sudoku *sudoku;
-    sf::RectangleShape solve, create;
+    sf::RectangleShape solve, create, reset;
 
 public:
     GraphicsControl(){}
