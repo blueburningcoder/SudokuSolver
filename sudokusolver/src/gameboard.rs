@@ -116,9 +116,11 @@ impl Gameboard {
     /// Set cell value. Returns the old value.
     pub fn set(&mut self, ind: [usize; 2], val: u8) {
         self.cells[ind[1]][ind[0]] = val;
-
+        self.possible[ind[1]][ind[0]] = [false; 9];
         if val == 0 {
             self.resetpossible();
+        } else {
+            self.possible[ind[1]][ind[0]][(val -1) as usize] = true;
         }
     }
 
@@ -164,6 +166,8 @@ impl Gameboard {
         // deltas.iter().for_each(|d: &mut Delta| d.apply(&mut self));
     }
 
+
+
     /// Proposes updated Deltas regarding the possibilities of this row.
     fn possibleinrow(self, row: usize) -> Vec<Delta> {
         let mut possible = [true; 9];
@@ -188,7 +192,9 @@ impl Gameboard {
                 for k in 0..9 {
                     newposs[k] = self.possible[row][i][k] && possible[k];
                 }
-                d.push(Delta::new([i, row], Right(newposs)));
+                if newposs != self.possible[row][i] {
+                    d.push(Delta::new([i, row], Right(newposs)));
+                }
             }
         }
         d
@@ -196,7 +202,7 @@ impl Gameboard {
 
     /// Proposes updated Deltas regarding the possibilities of this column.
     fn possibleincol(self, col: usize) -> Vec<Delta> {
-        let mut possible = [false; 9];
+        let mut possible = [true; 9];
         let mut possibles = 9;
         for i in 0..9 {
             let a = self.cells[i][col];
@@ -216,9 +222,9 @@ impl Gameboard {
             if a == 0 {
                 let mut newposs = [true; 9];
                 for k in 0..9 {
-                    newposs[k] = self.possible[i][col][k] || possible[k];
+                    newposs[k] = self.possible[i][col][k] && possible[k];
                 }
-                if (newposs != self.possible[i][col]) {
+                if newposs != self.possible[i][col] {
                     d.push(Delta::new([col, i], Right(newposs)));
                 }
             }
@@ -228,11 +234,55 @@ impl Gameboard {
 
     /// Return the number missing in this cluster.
     fn possibleincluster(self, cluster: usize) -> Vec<Delta> {
-        Vec::new()
+        let mut possible = [true; 9];
+        let mut possibles = 9;
+        // getting the base indices of this cluster
+        let bc = (cluster % 3) * 3;
+        let br = (cluster / 3) * 3;
+        for i in 0..9 {
+            let a = self.cells[br + i / 3][bc + i % 3];
+            if a > 0 {
+                possible[(a-1) as usize] = false;
+                possibles -= 1;
+            }
+        }
+
+        if possibles == 0 {
+            return Vec::new();
+        }
+
+        let mut d = Vec::<Delta>::new();
+        for i in 0..9 {
+            let a = self.cells[br + i / 3][bc + i % 3];
+            if a == 0 {
+                let mut newposs = [true; 9];
+                for k in 0..9 {
+                    newposs[k] = self.possible[br + i / 3][bc + i % 3][k] && possible[k];
+                }
+                if newposs != self.possible[br + i / 3][bc + i % 3] {
+                    d.push(Delta::new([bc + i % 3, br + i / 3], Right(newposs)));
+                }
+            }
+        }
+        // println!("with number: {}: {},{}    p: {}, {:?}", self.cells[br + i / 3][bc + i % 3], br + i / 3, bc + i % 3, possibles, possible);
+        d
     }
 
     /// If there's only one number left to be possible, set this number.
     fn setonlypossible(&mut self) {
-
+        println!("new round\n\n\n");
+        for i in 0..9 {
+            for j in 0..9 {
+                let s: Vec<usize> = self.possible[i][j].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i).collect();
+                let d: Vec<usize> = s.iter().map(|i| i + 1).collect();
+                println!("amount of possible at {}, {}: {:?}", j, i, d);
+                if s.len() == 1 {
+                    self.set([j, i], s[0] as u8 + 1);
+                }
+                if self.cells[i][j] != 0 {
+                    self.set([j, i], self.cells[i][j]);
+                }
+            }
+        }
     }
 }

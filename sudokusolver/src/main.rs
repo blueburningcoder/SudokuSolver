@@ -13,6 +13,8 @@ use piston::event_loop::{EventLoop, EventSettings, Events};
 use piston::input::RenderEvent;
 use piston::window::WindowSettings;
 
+use rayon::prelude::*;
+
 pub use crate::gameboard::Gameboard;
 pub use crate::gameboard_controller::GameboardController;
 pub use crate::gameboard_view::{GameboardView, GameboardViewSettings};
@@ -24,7 +26,7 @@ mod gameboard_view;
 fn main() {
     let opengl = OpenGL::V3_2;
 
-    let settings = WindowSettings::new("Sudoku", [512; 2])
+    let settings = WindowSettings::new("Sudoku", [418; 2])
         .opengl(opengl)
         .exit_on_esc(true);
 

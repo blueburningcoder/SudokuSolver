@@ -7,6 +7,7 @@ use graphics::character::CharacterCache;
 use crate::GameboardController;
 
 /// Stores gameboard view settings
+#[derive(Default)]
 pub struct GameboardViewSettings {
     /// Position from left-top corner.
     pub position: [f64; 2],
