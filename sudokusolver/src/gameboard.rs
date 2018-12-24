@@ -115,6 +115,7 @@ impl Gameboard {
 
     /// Set cell value. Returns the old value.
     pub fn set(&mut self, ind: [usize; 2], val: u8) {
+        println!("setting {} at {:?}.", val, ind);
         self.cells[ind[1]][ind[0]] = val;
         self.possible[ind[1]][ind[0]] = [false; 9];
         if val == 0 {
@@ -141,6 +142,25 @@ impl Gameboard {
     /// Necessary after removing numbers.
     fn resetpossible(&mut self) {
         self.possible = [[[true; 9]; SIZE]; SIZE];
+        for i in 0..9 {
+            for j in 0..9 {
+                if self.cells[i][j] != 0 {
+                    self.possible[i][j] = [false; 9];
+                    self.possible[i][j][(self.cells[i][j] - 1) as usize] = true;
+                }
+            }
+        }
+        let mut deltas = Vec::new();
+        for i in 0..9 {
+            // forward checking
+            deltas.extend(self.clone().possibleinrow(i));
+            deltas.extend(self.clone().possibleincol(i));
+            deltas.extend(self.clone().possibleincluster(i));
+        }
+        for delta in deltas.iter_mut() {
+            delta.apply(self);
+            // println!("applied delta: {:?}", delta);
+        }
     }
 
     /// Get possible values.
@@ -154,18 +174,27 @@ impl Gameboard {
         let mut deltas = Vec::new();
         // first, g
         for i in 0..9 {
+            // forward checking
             deltas.extend(self.clone().possibleinrow(i));
             deltas.extend(self.clone().possibleincol(i));
             deltas.extend(self.clone().possibleincluster(i));
+            // Arc Consistency Tier 1: Check if only possibility
+            deltas.extend(self.clone().onlypossinrow(i));
+            deltas.extend(self.clone().onlypossincol(i));
+            deltas.extend(self.clone().onlypossincluster(i));
+            // Arc Consistency Tier 2: Test if possibilities are realistically
+            // 'used' to begin with
         }
         for delta in deltas.iter_mut() {
             delta.apply(self);
             // println!("applied delta: {:?}", delta);
         }
         self.setonlypossible();
+        // if self.setonlypossible() {
+        //      self.autosolve()
+        // }
         // deltas.iter().for_each(|d: &mut Delta| d.apply(&mut self));
     }
-
 
 
     /// Proposes updated Deltas regarding the possibilities of this row.
@@ -268,21 +297,92 @@ impl Gameboard {
         d
     }
 
-    /// If there's only one number left to be possible, set this number.
-    fn setonlypossible(&mut self) {
-        println!("new round\n\n\n");
+    /// Testing if this row has a possibility that is only in one cell.
+    fn onlypossinrow(self, row: usize) -> Vec<Delta> {
+        let mut sums = [[false; 9]; SIZE];
+
         for i in 0..9 {
-            for j in 0..9 {
-                let s: Vec<usize> = self.possible[i][j].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i).collect();
-                let d: Vec<usize> = s.iter().map(|i| i + 1).collect();
-                println!("amount of possible at {}, {}: {:?}", j, i, d);
-                if s.len() == 1 {
-                    self.set([j, i], s[0] as u8 + 1);
-                }
-                if self.cells[i][j] != 0 {
-                    self.set([j, i], self.cells[i][j]);
+            if self.cells[row][i] == 0 {
+                for j in 0..9 {
+                    sums[j][i] = self.possible[row][i][j];
                 }
             }
         }
+        let mut d = Vec::new();
+        for i in 0..9 {
+            let s: Vec<usize> = sums[i].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i).collect();
+            if s.len() == 1 {
+                let mut redposs = [false; 9];
+                redposs[i] = true;
+                d.push(Delta::new([s[0], row], Right(redposs)));
+            }
+        }
+        d
+    }
+
+    /// Testing if this col has a possibility that is only in one cell.
+    fn onlypossincol(self, col: usize) -> Vec<Delta> {
+        let mut sums = [[false; 9]; SIZE];
+
+        for i in 0..9 {
+            if self.cells[i][col] == 0 {
+                for j in 0..9 {
+                    sums[j][i] = self.possible[i][col][j];
+                }
+            }
+        }
+        let mut d = Vec::new();
+        for i in 0..9 {
+            let s: Vec<usize> = sums[i].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i).collect();
+            if s.len() == 1 {
+                let mut redposs = [false; 9];
+                redposs[i] = true;
+                d.push(Delta::new([col, s[0]], Right(redposs)));
+            }
+        }
+        d
+    }
+
+    /// Testing if this cell has a possibility that is only in one cell.
+    fn onlypossincluster(self, cluster: usize) -> Vec<Delta> {
+        let mut sums = [[false; 9]; SIZE];
+
+        let bc = (cluster % 3) * 3;
+        let br = (cluster / 3) * 3;
+        for i in 0..9 {
+            if self.cells[br + i / 3][bc + i % 3] == 0 {
+                for j in 0..9 {
+                    sums[j][i] = self.possible[br + i / 3][bc + i % 3][j];
+                }
+            }
+        }
+        let mut d = Vec::new();
+        for i in 0..9 {
+            let s: Vec<usize> = sums[i].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i).collect();
+            if s.len() == 1 {
+                let mut redposs = [false; 9];
+                redposs[i] = true;
+                d.push(Delta::new([bc + s[0] % 3, br + s[0] / 3], Right(redposs)));
+            }
+        }
+        d
+    }
+
+    /// If there's only one number left to be possible, set this number.
+    fn setonlypossible(&mut self) -> bool {
+        let mut changedsth = false;
+        println!("new round\n\n\n");
+        for i in 0..9 {
+            for j in 0..9 {
+                let s: Vec<usize> = self.possible[i][j].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i + 1).collect();
+                // let d: Vec<usize> = s.iter().map(|i| i + 1).collect();
+                println!("amount of possible at {}, {}: {:?}", j, i, s);
+                if s.len() == 1 && self.cells[i][j] == 0 {
+                    self.set([j, i], s[0] as u8);
+                    changedsth = true;
+                }
+            }
+        }
+        changedsth
     }
 }

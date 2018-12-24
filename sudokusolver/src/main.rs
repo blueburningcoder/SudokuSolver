@@ -13,8 +13,6 @@ use piston::event_loop::{EventLoop, EventSettings, Events};
 use piston::input::RenderEvent;
 use piston::window::WindowSettings;
 
-use rayon::prelude::*;
-
 pub use crate::gameboard::Gameboard;
 pub use crate::gameboard_controller::GameboardController;
 pub use crate::gameboard_view::{GameboardView, GameboardViewSettings};
