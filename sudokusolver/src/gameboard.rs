@@ -215,8 +215,64 @@ impl Gameboard {
             deltas.extend(self.clone().onlypossinrow(i));
             deltas.extend(self.clone().onlypossincol(i));
             deltas.extend(self.clone().onlypossincluster(i));
-            // Arc Consistency Tier 2: Test if possibilities are realistically
-            // 'used' to begin with
+
+            // Tier 2a: detect if only possible 'row' or 'col' in cluster, and
+            // exclude possibilities in other clusters
+            //
+            // Example (possibilities):
+            // 0 0 0 | 0 0 0 | 0 5 0
+            // 0 0 0 | 0 5 5 | 0 5 0
+            // 5 5 5 | 0 5 5 | 0 0 5
+            // After:
+            // 0 0 0 | 0 0 0 | 0 5 0
+            // 0 0 0 | 0 5 5 | 0 5 0
+            // 5 5 5 | 0 X X | 0 0 X
+            //
+            // test from being inside the cluster if these are the same row/col
+            // modify this row/col then in excluding it in the other clusters.
+
+
+            // Tier 2b: detect one row/col being excluded (number wise) in two
+            // clusters in one line (no diagonal). exclude the other 
+            //
+            // Example (possibilities):
+            // 0 0 0 | 0 0 0 | 5 5 0
+            // 0 0 5 | 0 5 0 | 0 5 0
+            // 0 5 5 | 0 5 0 | 0 0 5
+            // After:
+            // 0 0 0 | 0 0 0 | 5 5 0
+            // 0 0 5 | 0 5 0 | 0 X 0
+            // 0 5 5 | 0 5 0 | 0 0 X
+            //
+            // test from row/col if this is within the same cluster
+            // modify this cluster then in excluding it in the other rows/cols.
+
+
+            // Tier 3: detect a case in which three possibilities aren't
+            // actually needed, and exclude the third.
+            //
+            // Example (numbers):
+            // 0 0 0 | 0 0 0 | 0 0 0
+            // 0 0 0 | 0 0 0 | 0 0 5
+            // 0 0 0 | 0 0 0 | 0 0 0
+            // ---------------------
+            // 0 5 0 | 0 0 0 | 0 0 0
+            // 0 0 0 | 0 0 0 | 0 0 0
+            // 0 0 0 | 0 0 0 | 0 0 0
+            // ---------------------
+            // 0 0 0 | 0 0 0 | 0 0 0
+            // 0 0 0 | 0 0 5 | 0 0 0
+            // 0 0 0 | 0 0 0 | 0 0 0
+            //
+            // Usually there is then in the other fields enough numbers to make
+            // in each of them either only two or three possibilities, it is
+            // sufficient for only one of them to only have two possibilities
+            // in a cluster.
+            //
+            // test: backtrack both possibilities and exclude the not actually
+            // needed fields.
+
+
         }
         for delta in deltas.iter_mut() {
             delta.apply(self);
@@ -378,8 +434,8 @@ impl Gameboard {
     fn onlypossincluster(self, cluster: usize) -> Vec<Delta> {
         let mut sums = [[false; 9]; SIZE];
 
-        let bc = (cluster % 3) * 3;
-        let br = (cluster / 3) * 3;
+        let bc = (cluster % 3) * 3; // base colum of cluster
+        let br = (cluster / 3) * 3; // base row of cluster
         for i in 0..9 {
             if self.cells[br + i / 3][bc + i % 3] == 0 {
                 for j in 0..9 {
@@ -389,15 +445,61 @@ impl Gameboard {
         }
         let mut d = Vec::new();
         for i in 0..9 {
+            // getting the cells where <num> i is actually possible.
             let s: Vec<usize> = sums[i].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i).collect();
             if s.len() == 1 {
+                // if there's only one cell, simply make <num> i the only
+                // possible value. This will in the next iteratien make it the
+                // value.
                 let mut redposs = [false; 9];
                 redposs[i] = true;
                 d.push(Delta::new([bc + s[0] % 3, br + s[0] / 3], Right(redposs)));
+            } else if s.len() == 2 {
+                // two actually have some special cases themselvels.
+                if s[0] % 3 == s[1] % 3 {
+                    let mut redposs = [true; 9];
+                    redposs[i] = false;
+                    // same col. now we can exclude other clusters
+                    // possibilities for this number in this col.
+                    for j in 0..9 {
+                        // s[X] % 3 is the additional col
+                        // s[X] / 3 is the additional row
+                        // additional to bc and br in this cluster
+                        // excluding the own cluster ofc
+                        if j / 3 == br / 3 {
+                            continue
+                        }
+                        d.push(Delta::new([bc + s[0] % 3, j], Right(redposs)));
+                    }
+                } else if s[0] / 3 == s[1] / 3 {
+                    let mut redposs = [true; 9];
+                    redposs[i] = false;
+                    // same row. now we can exclude other clusters
+                    // possibilities for this number in this row.
+                    for j in 0..9 {
+                        // s[X] % 3 is the additional col
+                        // s[X] / 3 is the additional row
+                        // additional to bc and br in this cluster
+                        // excluding the own cluster ofc
+                        if j / 3 == bc / 3 {
+                            continue
+                        }
+                        d.push(Delta::new([j, br + s[0] / 3], Right(redposs)));
+                    }
+                }
             }
         }
         d
     }
+
+    /// Excluding a number in a row except in this cluster.
+    fn excludenumberinrow_exceptcluster(self, row: usize, cluster: usize) -> Vec<Delta> {
+        Vec::new()
+    }
+
+    // excludenumberincol_exceptcluster
+    // excludenumberincluster_exceptrow
+    // excludenumberincluster_exceptcol
 
     /// If there's only one number left to be possible, set this number.
     fn setonlypossible(&mut self) -> bool {
