@@ -33,7 +33,6 @@ impl GameboardController {
         }
 
         if let Some(Button::Mouse(MouseButton::Left)) = e.press_args() {
-            self.gameboard.autosolve();
             // Find coordinates relative to upper left corner.
             let x = self.cursor_pos[0] - pos[0];
             let y = self.cursor_pos[1] - pos[1];
@@ -73,8 +72,9 @@ impl GameboardController {
                     Key::Left => self.select(ind[0], ind[1], -1, 0),
                     Key::Up => self.select(ind[0], ind[1], 0, -1),
                     _ => ()
-                }//;
+                }
             }
+            self.gameboard.autosolve();
         }
     }
 

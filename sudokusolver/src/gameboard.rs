@@ -58,6 +58,7 @@ impl Delta {
         } else if let Right(p) = delta.1 {
             g.setpossible(delta.0, p);
         }
+
 //         let f: Box<Fn(Gameboard)>;
 //         f = match delta.1 {
 //             Left(v) => Box::new(move |mut g: Gameboard| g.set(delta.0, v)),
@@ -94,7 +95,12 @@ impl Gameboard {
 
     /// Gets the character at cell location.
     pub fn char(&self, ind: [usize; 2]) -> Option<char> {
-        Some(match self.cells[ind[1]][ind[0]] {
+        self.char_from_num(self.cells[ind[1]][ind[0]])
+    }
+
+    /// Transforms a number to its character.
+    pub fn char_from_num(self, num: u8) -> Option<char> {
+        Some(match num {
             1 => '1',
             2 => '2',
             3 => '3',
@@ -115,14 +121,34 @@ impl Gameboard {
 
     /// Set cell value. Returns the old value.
     pub fn set(&mut self, ind: [usize; 2], val: u8) {
-        println!("setting {} at {:?}.", val, ind);
-        self.cells[ind[1]][ind[0]] = val;
-        self.possible[ind[1]][ind[0]] = [false; 9];
-        if val == 0 {
-            self.resetpossible();
-        } else {
-            self.possible[ind[1]][ind[0]][(val -1) as usize] = true;
+        if self.ispossible(ind, val) {
+            println!("setting {} at {:?}.", val, ind);
+            self.cells[ind[1]][ind[0]] = val;
+            self.possible[ind[1]][ind[0]] = [false; 9];
+            if val == 0 {
+                self.resetpossible();
+            }
         }
+    }
+
+    /// Checking if this value is possible at this index.
+    pub fn ispossible(self, ind: [usize; 2], val: u8) -> bool {
+        if val == 0 {
+            return true;
+        }
+        let col = ind[0];
+        let row = ind[1];
+        let bc = (col / 3) * 3;
+        let br = (row / 3) * 3;
+        for i in 0..9 {
+            if self.cells[row][i] == val ||
+                self.cells[i][col] == val ||
+                self.cells[br + i / 3][bc + i % 3] == val
+            {
+                return false;
+            }
+        }
+        true
     }
 
     /// Set possible values.
@@ -171,6 +197,7 @@ impl Gameboard {
     /// Trying to solve this sudoku, using forward checking and arc-consistency.
     /// Not capable of solving it if there's multiple solutions.
     pub fn autosolve(&mut self) {
+        self.setonlypossible();
         let mut deltas = Vec::new();
         // first, g
         for i in 0..9 {
@@ -178,6 +205,12 @@ impl Gameboard {
             deltas.extend(self.clone().possibleinrow(i));
             deltas.extend(self.clone().possibleincol(i));
             deltas.extend(self.clone().possibleincluster(i));
+        }
+        for delta in deltas.iter_mut() {
+            delta.apply(self);
+        }
+        deltas = Vec::new();
+        for i in 0..9 {
             // Arc Consistency Tier 1: Check if only possibility
             deltas.extend(self.clone().onlypossinrow(i));
             deltas.extend(self.clone().onlypossincol(i));
@@ -187,9 +220,7 @@ impl Gameboard {
         }
         for delta in deltas.iter_mut() {
             delta.apply(self);
-            // println!("applied delta: {:?}", delta);
         }
-        self.setonlypossible();
         // if self.setonlypossible() {
         //      self.autosolve()
         // }
@@ -297,8 +328,8 @@ impl Gameboard {
         d
     }
 
-    /// Testing if this row has a possibility that is only in one cell.
-    fn onlypossinrow(self, row: usize) -> Vec<Delta> {
+    /// Testing if this col has a possibility that is only in one cell.
+    fn onlypossincol(self, row: usize) -> Vec<Delta> {
         let mut sums = [[false; 9]; SIZE];
 
         for i in 0..9 {
@@ -320,8 +351,8 @@ impl Gameboard {
         d
     }
 
-    /// Testing if this col has a possibility that is only in one cell.
-    fn onlypossincol(self, col: usize) -> Vec<Delta> {
+    /// Testing if this row has a possibility that is only in one cell.
+    fn onlypossinrow(self, col: usize) -> Vec<Delta> {
         let mut sums = [[false; 9]; SIZE];
 
         for i in 0..9 {
