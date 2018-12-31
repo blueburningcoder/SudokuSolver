@@ -211,13 +211,12 @@ impl Gameboard {
         }
         deltas = Vec::new();
         for i in 0..9 {
-            // Arc Consistency Tier 1: Check if only possibility
-            deltas.extend(self.clone().onlypossinrow(i));
-            deltas.extend(self.clone().onlypossincol(i));
-            deltas.extend(self.clone().onlypossincluster(i));
+            // Arc Consistency Tier 1: Check if it is the only possibility in
+            // a row/col/cluster and set it accordingly.
 
             // Tier 2a: detect if only possible 'row' or 'col' in cluster, and
             // exclude possibilities in other clusters
+            // (implemented)
             //
             // Example (possibilities):
             // 0 0 0 | 0 0 0 | 0 5 0
@@ -233,7 +232,8 @@ impl Gameboard {
 
 
             // Tier 2b: detect one row/col being excluded (number wise) in two
-            // clusters in one line (no diagonal). exclude the other 
+            // clusters in one line (no diagonal). exclude the other
+            // (implemented)
             //
             // Example (possibilities):
             // 0 0 0 | 0 0 0 | 5 5 0
@@ -249,7 +249,9 @@ impl Gameboard {
 
 
             // Tier 3: detect a case in which three possibilities aren't
-            // actually needed, and exclude the third.
+            // actually needed, and exclude the third. There might even be a
+            // more general case than this.
+            // (missing)
             //
             // Example (numbers):
             // 0 0 0 | 0 0 0 | 0 0 0
@@ -272,6 +274,9 @@ impl Gameboard {
             // test: backtrack both possibilities and exclude the not actually
             // needed fields.
 
+            deltas.extend(self.clone().onlypossinrow(i));
+            deltas.extend(self.clone().onlypossincol(i));
+            deltas.extend(self.clone().onlypossincluster(i));
 
         }
         for delta in deltas.iter_mut() {
@@ -384,8 +389,8 @@ impl Gameboard {
         d
     }
 
-    /// Testing if this col has a possibility that is only in one cell.
-    fn onlypossincol(self, row: usize) -> Vec<Delta> {
+    /// Tier 1: Testing if this row has a possibility that is only in one cell.
+    fn onlypossinrow(self, row: usize) -> Vec<Delta> {
         let mut sums = [[false; 9]; SIZE];
 
         for i in 0..9 {
@@ -398,17 +403,30 @@ impl Gameboard {
         let mut d = Vec::new();
         for i in 0..9 {
             let s: Vec<usize> = sums[i].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i).collect();
+            // s[X] is the col.
             if s.len() == 1 {
                 let mut redposs = [false; 9];
                 redposs[i] = true;
                 d.push(Delta::new([s[0], row], Right(redposs)));
+            } else if s.len() == 2 {
+                if s[0] / 3 == s[1] / 3 {
+                    // same row and cluster.
+                    let cluster = s[0] / 3 + (row / 3) * 3;
+                    d.extend(self.excludenumberincluster_exceptrow(cluster, row, i));
+                }
+            } else if s.len() == 3 {
+                if s[0] / 3 == s[1] / 3 && s[1] / 3 == s[2] / 3 {
+                    // same row and cluster.
+                    let cluster = s[0] / 3 + (row / 3) * 3;
+                    d.extend(self.excludenumberincluster_exceptrow(cluster, row, i));
+                }
             }
         }
         d
     }
 
-    /// Testing if this row has a possibility that is only in one cell.
-    fn onlypossinrow(self, col: usize) -> Vec<Delta> {
+    /// Tier 1: Testing if this col has a possibility that is only in one cell.
+    fn onlypossincol(self, col: usize) -> Vec<Delta> {
         let mut sums = [[false; 9]; SIZE];
 
         for i in 0..9 {
@@ -421,16 +439,32 @@ impl Gameboard {
         let mut d = Vec::new();
         for i in 0..9 {
             let s: Vec<usize> = sums[i].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i).collect();
+            // s[X] is the row.
             if s.len() == 1 {
                 let mut redposs = [false; 9];
                 redposs[i] = true;
                 d.push(Delta::new([col, s[0]], Right(redposs)));
+            } else if s.len() == 2 {
+                if s[0] / 3 == s[1] / 3 {
+                    // same col and cluster.
+                    let cluster = col / 3 + (s[0] / 3) * 3;
+                    d.extend(self.excludenumberincluster_exceptcol(cluster, col, i));
+
+                }
+            } else if s.len() == 3 {
+                if s[0] / 3 == s[1] / 3 && s[1] / 3 == s[2] / 3 {
+                    // same col and cluster.
+                    let cluster = col / 3 + (s[0] / 3) * 3;
+                    d.extend(self.excludenumberincluster_exceptcol(cluster, col, i));
+                }
             }
         }
         d
     }
 
-    /// Testing if this cell has a possibility that is only in one cell.
+    /// Tier 1: Testing if this cell has a possibility that is only in one cell.
+    /// Tier 2a: Testing if (2-3) only-possibilities are in one row/col and
+    /// excluding other possibilities based on this.
     fn onlypossincluster(self, cluster: usize) -> Vec<Delta> {
         let mut sums = [[false; 9]; SIZE];
 
@@ -528,13 +562,52 @@ impl Gameboard {
     }
 
     /// Excluding a number in a cluster except for one row.
-    fn excludenumberincluster_exceptrow(self, cluster: usize, row: usize) -> Vec<Delta> {
-        Vec::new()
+    fn excludenumberincluster_exceptrow(
+        self,
+        cluster: usize,
+        row: usize,
+        number: usize,
+    ) -> Vec<Delta> {
+        println!("excluded number {} in cluster {} but not row {}", number + 1, cluster, row);
+        let bc = (cluster % 3) * 3; // base colum of cluster
+        let br = (cluster / 3) * 3; // base row of cluster
+        let mut d = Vec::new();
+        let mut redposs = [true; 9];
+        redposs[number] = false;
+        // iterate through cluster and exclude this row in setting something not possible.
+        for i in 0..9 {
+            if i / 3 == row % 3 {
+                continue
+            }
+            d.push(Delta::new([bc + i % 3, br + i / 3], Right(redposs)));
+        }
+
+
+        d
     }
-    
+
     /// Excluding a number in a cluster except for one colum.
-    fn excludenumberincluster_exceptcol(self, cluster: usize, col: usize) -> Vec<Delta> {
-        Vec::new()
+    fn excludenumberincluster_exceptcol(
+        self,
+        cluster: usize,
+        col: usize,
+        number: usize,
+    ) -> Vec<Delta> {
+        println!("excluded number {} in cluster {} but not col {}", number + 1, cluster, col);
+        let bc = (cluster % 3) * 3; // base colum of cluster
+        let br = (cluster / 3) * 3; // base row of cluster
+        let mut d = Vec::new();
+        let mut redposs = [true; 9];
+        redposs[number] = false;
+        // iterate through cluster and exclude this col in setting something not possible.
+        for i in 0..9 {
+            if i % 3 == col % 3 {
+                continue
+            }
+            d.push(Delta::new([bc + i % 3, br + i / 3], Right(redposs)));
+        }
+
+        d
     }
 
     /// If there's only one number left to be possible, set this number.
