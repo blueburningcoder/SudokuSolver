@@ -20,7 +20,7 @@ void FIELD::init(int x, int y, sf::Font newFont, int Cluster,
         Nums[i - 1].setFont(font);
         Nums[i - 1].setPosition(x + 2, y);
         Nums[i - 1].setCharacterSize(14);
-        Nums[i - 1].setColor(sf::Color(20, 200, 20) );
+        Nums[i - 1].setColor(sf::Color(20, 250, 20) );
         Nums[i - 1].setString(std::to_string(i) );
         x += 16;
         if (i % 3 == 0) {
@@ -29,7 +29,7 @@ void FIELD::init(int x, int y, sf::Font newFont, int Cluster,
         }
     }
     Nums[9].setCharacterSize(40);
-    Nums[9].setColor(sf::Color(60, 60, 255) );
+    Nums[9].setColor(sf::Color(80, 80, 255) );
     Nums[9].setPosition(xPos + 10, yPos);
     Nums[9].setString(std::to_string(index) );
 
@@ -187,7 +187,7 @@ void FIELD::setNum(int number) {
 // removing the possibility of the @param alredyNum
 void FIELD::removePossible(NUMBERS alreadyNum) {
     possible[(int) alreadyNum - 1] = false;
-    Nums[(int) alreadyNum - 1].setColor(sf::Color(200, 20, 20, 150) );
+    Nums[(int) alreadyNum - 1].setColor(sf::Color(150, 20, 20, 150) );
 }
 
 

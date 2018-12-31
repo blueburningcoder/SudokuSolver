@@ -23,6 +23,11 @@ int main() {
 
     sf::Vector2i mousePos;
 
+
+    std::cout << "events: " << sf::Event::KeyPressed << std::endl;
+    std::cout << "events: " << sf::Event::MouseButtonPressed << std::endl;
+
+
     while (window.isOpen() ) {
 
         mousePos = sf::Mouse::getPosition(window);
@@ -50,8 +55,10 @@ int main() {
                         control.testClicked(mousePos.x, mousePos.y);
                     }
                     break;
+                case sf::Event::MouseMoved:
+                    break;
                 default:
-                    std::cout << "uncovered event" << std::endl;
+                    std::cout << "uncovered event: " << event.type << " " << event.key.code << std::endl;
             }
         }
 
@@ -64,8 +71,11 @@ int main() {
         sud.draw(&window);
 
         window.display();
-        std::cout << "Frame: " << Frame << std::endl;
+        if (Frame % 20 == 0)
+            std::cout << "Frame: " << Frame << std::endl;
         Frame++;
+
+        std::this_thread::__sleep_for(std::chrono::seconds(0), std::chrono::milliseconds(30) );
 
         // std::this_thread::sleep_for(std::chrono::milliseconds(30) );
     }
