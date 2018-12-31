@@ -1,4 +1,7 @@
 # SudokuSolver
 out-of-fun try of a sudoku-solver and creator
 
-should create and solve Sudokus when finished. I try to not include the TGUI but I'm currently unnecessarily linking it, gonna fix it sometime soon ...
+Should be able to create as well as solve Sudokus when finished.
+
+Currently there's two versions, one in C++ and one in Rust (which is better already). The Rust version can not yet generate sudokus. Also there's no buttons to toggle the autosolving-property.
+
