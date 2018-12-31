@@ -457,35 +457,16 @@ impl Gameboard {
             } else if s.len() == 2 {
                 // two actually have some special cases themselvels.
                 if s[0] % 3 == s[1] % 3 {
-                    let mut redposs = [true; 9];
-                    redposs[i] = false;
-                    // same col. now we can exclude other clusters
-                    // possibilities for this number in this col.
-                    for j in 0..9 {
-                        // s[X] % 3 is the additional col
-                        // s[X] / 3 is the additional row
-                        // additional to bc and br in this cluster
-                        // excluding the own cluster ofc
-                        if j / 3 == br / 3 {
-                            continue
-                        }
-                        d.push(Delta::new([bc + s[0] % 3, j], Right(redposs)));
-                    }
+                    d.extend(self.excludenumberincol_exceptcluster(s[0], cluster, i));
                 } else if s[0] / 3 == s[1] / 3 {
-                    let mut redposs = [true; 9];
-                    redposs[i] = false;
-                    // same row. now we can exclude other clusters
-                    // possibilities for this number in this row.
-                    for j in 0..9 {
-                        // s[X] % 3 is the additional col
-                        // s[X] / 3 is the additional row
-                        // additional to bc and br in this cluster
-                        // excluding the own cluster ofc
-                        if j / 3 == bc / 3 {
-                            continue
-                        }
-                        d.push(Delta::new([j, br + s[0] / 3], Right(redposs)));
-                    }
+                    d.extend(self.excludenumberinrow_exceptcluster(s[0], cluster, i));
+                }
+            } else if s.len() == 3 {
+                // if all three of them are in the same row or colum
+                if s[0] % 3 == s[1] % 3 && s[1] % 3 == s[2] % 3 {
+                    d.extend(self.excludenumberincol_exceptcluster(s[0], cluster, i));
+                } else if s[0] / 3 == s[1] / 3 && s[1] / 3 == s[2] / 3 {
+                    d.extend(self.excludenumberinrow_exceptcluster(s[0], cluster, i));
                 }
             }
         }
@@ -493,13 +474,68 @@ impl Gameboard {
     }
 
     /// Excluding a number in a row except in this cluster.
-    fn excludenumberinrow_exceptcluster(self, row: usize, cluster: usize) -> Vec<Delta> {
-        Vec::new()
+    fn excludenumberinrow_exceptcluster(
+        self,
+        row: usize,
+        cluster: usize,
+        number: usize,
+    ) -> Vec<Delta> {
+        let bc = (cluster % 3) * 3; // base colum of cluster
+        let br = (cluster / 3) * 3; // base row of cluster
+        let mut d = Vec::new();
+        let mut redposs = [true; 9];
+        redposs[number] = false;
+        // same row. now we can exclude other clusters
+        // possibilities for this number in this row.
+        for j in 0..9 {
+            // s[X] % 3 is the additional col
+            // s[X] / 3 is the additional row
+            // additional to bc and br in this cluster
+            // excluding the own cluster ofc
+            if j / 3 == bc / 3 {
+                continue
+            }
+            d.push(Delta::new([j, br + row / 3], Right(redposs)));
+        }
+        d
     }
 
-    // excludenumberincol_exceptcluster
-    // excludenumberincluster_exceptrow
-    // excludenumberincluster_exceptcol
+    /// Excluding a number in a colum except in this cluster.
+    fn excludenumberincol_exceptcluster(
+        self,
+        col: usize,
+        cluster: usize,
+        number: usize,
+    ) -> Vec<Delta> {
+        let bc = (cluster % 3) * 3; // base colum of cluster
+        let br = (cluster / 3) * 3; // base row of cluster
+        let mut d = Vec::new();
+        let mut redposs = [true; 9];
+        redposs[number] = false;
+        // same col. now we can exclude other clusters
+        // possibilities for this number in this col.
+        for j in 0..9 {
+            // s[X] % 3 is the additional col
+            // s[X] / 3 is the additional row
+            // additional to bc and br in this cluster
+            // excluding the own cluster ofc
+            if j / 3 == br / 3 {
+                continue
+            }
+            d.push(Delta::new([bc + col % 3, j], Right(redposs)));
+        }
+        d
+    }
+
+    /// Excluding a number in a cluster except for one row.
+    fn excludenumberincluster_exceptrow(self, cluster: usize, row: usize) -> Vec<Delta> {
+        Vec::new()
+    }
+    
+    /// Excluding a number in a cluster except for one colum.
+    fn excludenumberincluster_exceptcol(self, cluster: usize, col: usize) -> Vec<Delta> {
+        Vec::new()
+    }
 
     /// If there's only one number left to be possible, set this number.
     fn setonlypossible(&mut self) -> bool {
