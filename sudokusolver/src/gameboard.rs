@@ -514,6 +514,7 @@ impl Gameboard {
         cluster: usize,
         number: usize,
     ) -> Vec<Delta> {
+        println!("excluded number {} in col {} but not cluster {}", number + 1, row, cluster);
         let bc = (cluster % 3) * 3; // base colum of cluster
         let br = (cluster / 3) * 3; // base row of cluster
         let mut d = Vec::new();
@@ -541,6 +542,7 @@ impl Gameboard {
         cluster: usize,
         number: usize,
     ) -> Vec<Delta> {
+        println!("excluded number {} in col {} but not cluster {}", number + 1, col, cluster);
         let bc = (cluster % 3) * 3; // base colum of cluster
         let br = (cluster / 3) * 3; // base row of cluster
         let mut d = Vec::new();
@@ -618,7 +620,6 @@ impl Gameboard {
             for j in 0..9 {
                 let s: Vec<usize> = self.possible[i][j].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i + 1).collect();
                 // let d: Vec<usize> = s.iter().map(|i| i + 1).collect();
-                println!("amount of possible at {}, {}: {:?}", j, i, s);
                 if s.len() == 1 && self.cells[i][j] == 0 {
                     self.set([j, i], s[0] as u8);
                     changedsth = true;

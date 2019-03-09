@@ -143,7 +143,7 @@ impl GameboardView {
                             text_image.draw(character.texture,
                                             &c.draw_state,
                                             c.transform.trans(ch_x, ch_y)
-                                                       .scale(0.3, 0.3),
+                                                       .scale(0.33, 0.33),
                                             g);
                         }
                     } }
