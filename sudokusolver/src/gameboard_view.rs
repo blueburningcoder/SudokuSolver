@@ -1,8 +1,8 @@
 //! Gameboard view.
 
+use graphics::character::CharacterCache;
 use graphics::types::Color;
 use graphics::{Context, Graphics};
-use graphics::character::CharacterCache;
 
 use crate::GameboardController;
 
@@ -76,9 +76,9 @@ impl GameboardView {
         controller: &GameboardController,
         glyphs: &mut C,
         c: &Context,
-        g: &mut G
-    )
-        where C: CharacterCache<Texture = G::Texture>
+        g: &mut G,
+    ) where
+        C: CharacterCache<Texture = G::Texture>,
     {
         use graphics::{Image, Line, Rectangle, Transformed};
 
@@ -120,37 +120,48 @@ impl GameboardView {
                     // Drawing the character if present.
                     let pos = [
                         settings.position[0] + i as f64 * cell_size + 15.0,
-                        settings.position[1] + j as f64 * cell_size + 34.0
+                        settings.position[1] + j as f64 * cell_size + 34.0,
                     ];
                     if let Ok(character) = glyphs.character(34, ch) {
                         let ch_x = pos[0] + character.left();
                         let ch_y = pos[1] - character.top();
-                        text_image.draw(character.texture,
-                                        &c.draw_state,
-                                        c.transform.trans(ch_x, ch_y),
-                                        g);
+                        text_image.draw(
+                            character.texture,
+                            &c.draw_state,
+                            c.transform.trans(ch_x, ch_y),
+                            g,
+                        );
                     }
                 } else {
                     // Drawing the excluded possibilities otherwise.
                     for k in 0..9 {
                         if controller.gameboard.possible[j][i][k] {
-                            continue
+                            continue;
                         }
-                        if let Some(ch) = controller.gameboard.char_from_num((k+1) as u8) {
-                        if let Ok(character) = glyphs.character(34, ch) {
-                            let ch_x = settings.position[0] + i as f64 * cell_size + (k % 3) as f64 * cell_size / 3.0 + 5. + character.left();
-                            let ch_y = settings.position[1] + j as f64 * cell_size + (k / 3) as f64 * cell_size / 3.0 + 26. - character.top();
-                            text_image.draw(character.texture,
-                                            &c.draw_state,
-                                            c.transform.trans(ch_x, ch_y)
-                                                       .scale(0.33, 0.33),
-                                            g);
+                        if let Some(ch) = controller.gameboard.char_from_num((k + 1) as u8) {
+                            if let Ok(character) = glyphs.character(34, ch) {
+                                let ch_x = settings.position[0]
+                                    + i as f64 * cell_size
+                                    + (k % 3) as f64 * cell_size / 3.0
+                                    + 5.
+                                    + character.left();
+                                let ch_y = settings.position[1]
+                                    + j as f64 * cell_size
+                                    + (k / 3) as f64 * cell_size / 3.0
+                                    + 26.
+                                    - character.top();
+                                text_image.draw(
+                                    character.texture,
+                                    &c.draw_state,
+                                    c.transform.trans(ch_x, ch_y).scale(0.33, 0.33),
+                                    g,
+                                );
+                            }
                         }
-                    } }
+                    }
                 }
             }
         }
-
 
         // Draw cell borders.
         let cell_edge = Line::new(settings.cell_edge_color, settings.cell_edge_radius);

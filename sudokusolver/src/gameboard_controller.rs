@@ -71,7 +71,7 @@ impl GameboardController {
                     Key::Down => self.select(ind[0], ind[1], 0, 1),
                     Key::Left => self.select(ind[0], ind[1], -1, 0),
                     Key::Up => self.select(ind[0], ind[1], 0, -1),
-                    _ => ()
+                    _ => (),
                 }
             }
             self.gameboard.autosolve();

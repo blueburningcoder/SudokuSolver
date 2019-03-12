@@ -16,7 +16,6 @@ pub struct Gameboard {
     pub possible: [[[bool; 9]; SIZE]; SIZE],
 }
 
-
 /// Delta on game boards.
 /// This includes changes in cell-occupation and possible values.
 /// One Delta is one change, however they are usually in lists.
@@ -32,9 +31,7 @@ struct Delta {
     index: u32,
 }
 
-
 impl Delta {
-
     /// Creating a new Delta 'object'.
     pub fn new(ind: [usize; 2], new: Either<u8, [bool; 9]>) -> Delta {
         Delta {
@@ -49,40 +46,40 @@ impl Delta {
     pub fn apply(&mut self, g: &mut Gameboard) {
         let delta = self.delta;
         self.applied = true;
-        self.previous = (delta.0, delta.1.either(
-            |_| Left(g.get(delta.0)),
-            |_| Right(g.getpossible(delta.0))
-            ));
+        self.previous = (
+            delta.0,
+            delta
+                .1
+                .either(|_| Left(g.get(delta.0)), |_| Right(g.getpossible(delta.0))),
+        );
         if let Left(v) = delta.1 {
             g.set(delta.0, v);
         } else if let Right(p) = delta.1 {
             g.setpossible(delta.0, p);
         }
 
-//         let f: Box<Fn(Gameboard)>;
-//         f = match delta.1 {
-//             Left(v) => Box::new(move |mut g: Gameboard| g.set(delta.0, v)),
-//             Right(p) => Box::new(move |mut g: Gameboard| g.setpossible(delta.0, p)),
-//         };
-//         let f: Box<Fn(Gameboard)> = delta.1.either(
-//             |v| Box::new(move |mut g: Gameboard| g.set(delta.0, v)),
-//             |p| Box::new(move |mut g: Gameboard| g.setpossible(delta.0, p))
-//             );
-//         f(g);
+        //         let f: Box<Fn(Gameboard)>;
+        //         f = match delta.1 {
+        //             Left(v) => Box::new(move |mut g: Gameboard| g.set(delta.0, v)),
+        //             Right(p) => Box::new(move |mut g: Gameboard| g.setpossible(delta.0, p)),
+        //         };
+        //         let f: Box<Fn(Gameboard)> = delta.1.either(
+        //             |v| Box::new(move |mut g: Gameboard| g.set(delta.0, v)),
+        //             |p| Box::new(move |mut g: Gameboard| g.setpossible(delta.0, p))
+        //             );
+        //         f(g);
     }
 
-/*
-    /// This is reverting the change on the Gameboard.
-    pub fn revert(self, g: &mut Gameboard) {
-        if !self.applied {
-            return;
+    /*
+        /// This is reverting the change on the Gameboard.
+        pub fn revert(self, g: &mut Gameboard) {
+            if !self.applied {
+                return;
+            }
+
         }
-
-    }
-*/
-
+    */
 }
-
 
 impl Gameboard {
     /// Creates a new game board.
@@ -141,9 +138,9 @@ impl Gameboard {
         let bc = (col / 3) * 3;
         let br = (row / 3) * 3;
         for i in 0..9 {
-            if self.cells[row][i] == val ||
-                self.cells[i][col] == val ||
-                self.cells[br + i / 3][bc + i % 3] == val
+            if self.cells[row][i] == val
+                || self.cells[i][col] == val
+                || self.cells[br + i / 3][bc + i % 3] == val
             {
                 return false;
             }
@@ -158,11 +155,9 @@ impl Gameboard {
             return;
         }
         for i in 0..9 {
-            self.possible[ind[1]][ind[0]][i] =
-                self.possible[ind[1]][ind[0]][i] && poss[i];
+            self.possible[ind[1]][ind[0]][i] = self.possible[ind[1]][ind[0]][i] && poss[i];
         }
     }
-
 
     /// Resetting the possible values to everything possible.
     /// Necessary after removing numbers.
@@ -230,7 +225,6 @@ impl Gameboard {
             // test from being inside the cluster if these are the same row/col
             // modify this row/col then in excluding it in the other clusters.
 
-
             // Tier 2b: detect one row/col being excluded (number wise) in two
             // clusters in one line (no diagonal). exclude the other
             // (implemented)
@@ -246,7 +240,6 @@ impl Gameboard {
             //
             // test from row/col if this is within the same cluster
             // modify this cluster then in excluding it in the other rows/cols.
-
 
             // Tier 3: detect a case in which three possibilities aren't
             // actually needed, and exclude the third. There might even be a
@@ -277,7 +270,6 @@ impl Gameboard {
             deltas.extend(self.clone().onlypossinrow(i));
             deltas.extend(self.clone().onlypossincol(i));
             deltas.extend(self.clone().onlypossincluster(i));
-
         }
         for delta in deltas.iter_mut() {
             delta.apply(self);
@@ -288,7 +280,6 @@ impl Gameboard {
         // deltas.iter().for_each(|d: &mut Delta| d.apply(&mut self));
     }
 
-
     /// Proposes updated Deltas regarding the possibilities of this row.
     fn possibleinrow(self, row: usize) -> Vec<Delta> {
         let mut possible = [true; 9];
@@ -296,7 +287,7 @@ impl Gameboard {
         for i in 0..9 {
             let a = self.cells[row][i];
             if a > 0 {
-                possible[(a-1) as usize] = false;
+                possible[(a - 1) as usize] = false;
                 possibles -= 1;
             }
         }
@@ -328,7 +319,7 @@ impl Gameboard {
         for i in 0..9 {
             let a = self.cells[i][col];
             if a > 0 {
-                possible[(a-1) as usize] = false;
+                possible[(a - 1) as usize] = false;
                 possibles -= 1;
             }
         }
@@ -363,7 +354,7 @@ impl Gameboard {
         for i in 0..9 {
             let a = self.cells[br + i / 3][bc + i % 3];
             if a > 0 {
-                possible[(a-1) as usize] = false;
+                possible[(a - 1) as usize] = false;
                 possibles -= 1;
             }
         }
@@ -402,7 +393,12 @@ impl Gameboard {
         }
         let mut d = Vec::new();
         for i in 0..9 {
-            let s: Vec<usize> = sums[i].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i).collect();
+            let s: Vec<usize> = sums[i]
+                .iter()
+                .enumerate()
+                .filter(|(_i, b)| **b)
+                .map(|(i, _b)| i)
+                .collect();
             // s[X] is the col.
             if s.len() == 1 {
                 let mut redposs = [false; 9];
@@ -438,7 +434,12 @@ impl Gameboard {
         }
         let mut d = Vec::new();
         for i in 0..9 {
-            let s: Vec<usize> = sums[i].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i).collect();
+            let s: Vec<usize> = sums[i]
+                .iter()
+                .enumerate()
+                .filter(|(_i, b)| **b)
+                .map(|(i, _b)| i)
+                .collect();
             // s[X] is the row.
             if s.len() == 1 {
                 let mut redposs = [false; 9];
@@ -449,7 +450,6 @@ impl Gameboard {
                     // same col and cluster.
                     let cluster = col / 3 + (s[0] / 3) * 3;
                     d.extend(self.excludenumberincluster_exceptcol(cluster, col, i));
-
                 }
             } else if s.len() == 3 {
                 if s[0] / 3 == s[1] / 3 && s[1] / 3 == s[2] / 3 {
@@ -480,7 +480,12 @@ impl Gameboard {
         let mut d = Vec::new();
         for i in 0..9 {
             // getting the cells where <num> i is actually possible.
-            let s: Vec<usize> = sums[i].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i).collect();
+            let s: Vec<usize> = sums[i]
+                .iter()
+                .enumerate()
+                .filter(|(_i, b)| **b)
+                .map(|(i, _b)| i)
+                .collect();
             if s.len() == 1 {
                 // if there's only one cell, simply make <num> i the only
                 // possible value. This will in the next iteratien make it the
@@ -514,7 +519,12 @@ impl Gameboard {
         cluster: usize,
         number: usize,
     ) -> Vec<Delta> {
-        println!("excluded number {} in col {} but not cluster {}", number + 1, row, cluster);
+        println!(
+            "excluded number {} in col {} but not cluster {}",
+            number + 1,
+            row,
+            cluster
+        );
         let bc = (cluster % 3) * 3; // base colum of cluster
         let br = (cluster / 3) * 3; // base row of cluster
         let mut d = Vec::new();
@@ -528,7 +538,7 @@ impl Gameboard {
             // additional to bc and br in this cluster
             // excluding the own cluster ofc
             if j / 3 == bc / 3 {
-                continue
+                continue;
             }
             d.push(Delta::new([j, br + row / 3], Right(redposs)));
         }
@@ -542,7 +552,12 @@ impl Gameboard {
         cluster: usize,
         number: usize,
     ) -> Vec<Delta> {
-        println!("excluded number {} in col {} but not cluster {}", number + 1, col, cluster);
+        println!(
+            "excluded number {} in col {} but not cluster {}",
+            number + 1,
+            col,
+            cluster
+        );
         let bc = (cluster % 3) * 3; // base colum of cluster
         let br = (cluster / 3) * 3; // base row of cluster
         let mut d = Vec::new();
@@ -556,7 +571,7 @@ impl Gameboard {
             // additional to bc and br in this cluster
             // excluding the own cluster ofc
             if j / 3 == br / 3 {
-                continue
+                continue;
             }
             d.push(Delta::new([bc + col % 3, j], Right(redposs)));
         }
@@ -570,7 +585,12 @@ impl Gameboard {
         row: usize,
         number: usize,
     ) -> Vec<Delta> {
-        println!("excluded number {} in cluster {} but not row {}", number + 1, cluster, row);
+        println!(
+            "excluded number {} in cluster {} but not row {}",
+            number + 1,
+            cluster,
+            row
+        );
         let bc = (cluster % 3) * 3; // base colum of cluster
         let br = (cluster / 3) * 3; // base row of cluster
         let mut d = Vec::new();
@@ -579,11 +599,10 @@ impl Gameboard {
         // iterate through cluster and exclude this row in setting something not possible.
         for i in 0..9 {
             if i / 3 == row % 3 {
-                continue
+                continue;
             }
             d.push(Delta::new([bc + i % 3, br + i / 3], Right(redposs)));
         }
-
 
         d
     }
@@ -595,7 +614,12 @@ impl Gameboard {
         col: usize,
         number: usize,
     ) -> Vec<Delta> {
-        println!("excluded number {} in cluster {} but not col {}", number + 1, cluster, col);
+        println!(
+            "excluded number {} in cluster {} but not col {}",
+            number + 1,
+            cluster,
+            col
+        );
         let bc = (cluster % 3) * 3; // base colum of cluster
         let br = (cluster / 3) * 3; // base row of cluster
         let mut d = Vec::new();
@@ -604,7 +628,7 @@ impl Gameboard {
         // iterate through cluster and exclude this col in setting something not possible.
         for i in 0..9 {
             if i % 3 == col % 3 {
-                continue
+                continue;
             }
             d.push(Delta::new([bc + i % 3, br + i / 3], Right(redposs)));
         }
@@ -618,7 +642,12 @@ impl Gameboard {
         println!("new round\n\n\n");
         for i in 0..9 {
             for j in 0..9 {
-                let s: Vec<usize> = self.possible[i][j].iter().enumerate().filter(|(_i, b)| **b).map(|(i, _b)| i + 1).collect();
+                let s: Vec<usize> = self.possible[i][j]
+                    .iter()
+                    .enumerate()
+                    .filter(|(_i, b)| **b)
+                    .map(|(i, _b)| i + 1)
+                    .collect();
                 // let d: Vec<usize> = s.iter().map(|i| i + 1).collect();
                 if s.len() == 1 && self.cells[i][j] == 0 {
                     self.set([j, i], s[0] as u8);

@@ -8,7 +8,7 @@ extern crate opengl_graphics;
 extern crate piston;
 
 use glutin_window::GlutinWindow;
-use opengl_graphics::{OpenGL, Filter, GlGraphics, GlyphCache, TextureSettings};
+use opengl_graphics::{Filter, GlGraphics, GlyphCache, OpenGL, TextureSettings};
 use piston::event_loop::{EventLoop, EventSettings, Events};
 use piston::input::RenderEvent;
 use piston::window::WindowSettings;
