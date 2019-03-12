@@ -14,6 +14,8 @@ pub struct Gameboard {
     /// Stores the possibilities for all the cells.
     /// has to be updated regularly.
     pub possible: [[[bool; 9]; SIZE]; SIZE],
+    /// If the value has been set manually 
+    pub manual: [[bool; SIZE]; SIZE],
 }
 
 /// Delta on game boards.
@@ -87,6 +89,7 @@ impl Gameboard {
         Gameboard {
             cells: [[0; SIZE]; SIZE],
             possible: [[[true; 9]; SIZE]; SIZE],
+            manual: [[false; SIZE]; SIZE],
         }
     }
 
@@ -116,7 +119,7 @@ impl Gameboard {
         self.cells[ind[1]][ind[0]]
     }
 
-    /// Set cell value. Returns the old value.
+    /// Set cell value.
     pub fn set(&mut self, ind: [usize; 2], val: u8) {
         if self.ispossible(ind, val) {
             println!("setting {} at {:?}.", val, ind);
@@ -124,6 +127,33 @@ impl Gameboard {
             self.possible[ind[1]][ind[0]] = [false; 9];
             if val == 0 {
                 self.resetpossible();
+            }
+        }
+    }
+
+    /// Set cell value manually.
+    pub fn setmanually(&mut self, ind: [usize; 2], val: u8) {
+        if self.ispossible(ind, val) {
+            println!("manually setting {} at {:?}.", val, ind);
+            self.cells[ind[1]][ind[0]] = val;
+            self.manual[ind[1]][ind[0]] = true;
+            self.possible[ind[1]][ind[0]] = [false; 9];
+            if val == 0 {
+                self.resetpossible();
+                self.manual[ind[1]][ind[0]] = false;
+            }
+        }
+    }
+
+    /// reset all fields that have not been set manually.
+    pub fn reset_manual(&mut self) {
+        println!("Resetting non manually set values");
+        for i in 0..9 {
+            for j in 0..9 {
+                if !self.manual[i][j] {
+                    self.possible[i][j] = [true; 9];
+                    self.cells[i][j] = 0;
+                }
             }
         }
     }
@@ -201,10 +231,12 @@ impl Gameboard {
             deltas.extend(self.clone().possibleincol(i));
             deltas.extend(self.clone().possibleincluster(i));
         }
+
         for delta in deltas.iter_mut() {
             delta.apply(self);
         }
         deltas = Vec::new();
+
         for i in 0..9 {
             // Arc Consistency Tier 1: Check if it is the only possibility in
             // a row/col/cluster and set it accordingly.
@@ -638,8 +670,8 @@ impl Gameboard {
 
     /// If there's only one number left to be possible, set this number.
     fn setonlypossible(&mut self) -> bool {
+        println!("new round!");
         let mut changedsth = false;
-        println!("new round\n\n\n");
         for i in 0..9 {
             for j in 0..9 {
                 let s: Vec<usize> = self.possible[i][j]
