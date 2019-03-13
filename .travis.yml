@@ -2,7 +2,7 @@ language: rust
 cache:
     directories:
         - $HOME/sudokusolver/.cargo
-        - $HOME/sudokusolver/target
+        - $HOME/build/fkarg/SudokuSolver/target
 before_install:
     - cd sudokusolver
 rust:
