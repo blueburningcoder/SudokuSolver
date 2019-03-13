@@ -14,8 +14,10 @@ pub struct Gameboard {
     /// Stores the possibilities for all the cells.
     /// has to be updated regularly.
     pub possible: [[[bool; 9]; SIZE]; SIZE],
-    /// If the value has been set manually 
+    /// If the value has been set manually
     pub manual: [[bool; SIZE]; SIZE],
+    /// If the value has been changed since the last iteration
+    pub changed: [[bool; SIZE]; SIZE],
 }
 
 /// Delta on game boards.
@@ -90,6 +92,7 @@ impl Gameboard {
             cells: [[0; SIZE]; SIZE],
             possible: [[[true; 9]; SIZE]; SIZE],
             manual: [[false; SIZE]; SIZE],
+            changed: [[false; SIZE]; SIZE],
         }
     }
 
@@ -124,6 +127,7 @@ impl Gameboard {
         if self.ispossible(ind, val) {
             println!("setting {} at {:?}.", val, ind);
             self.cells[ind[1]][ind[0]] = val;
+            self.changed[ind[1]][ind[0]] = true;
             self.possible[ind[1]][ind[0]] = [false; 9];
             if val == 0 {
                 self.resetpossible();
@@ -162,6 +166,8 @@ impl Gameboard {
     pub fn ispossible(self, ind: [usize; 2], val: u8) -> bool {
         if val == 0 {
             return true;
+        } else if self.cells[ind[1]][ind[0]] != 0 {
+            return false;
         }
         let col = ind[0];
         let row = ind[1];
@@ -187,6 +193,7 @@ impl Gameboard {
         for i in 0..9 {
             self.possible[ind[1]][ind[0]][i] = self.possible[ind[1]][ind[0]][i] && poss[i];
         }
+        self.changed[ind[1]][ind[0]] = true;
     }
 
     /// Resetting the possible values to everything possible.
@@ -209,8 +216,9 @@ impl Gameboard {
             deltas.extend(self.clone().possibleincluster(i));
         }
         for delta in deltas.iter_mut() {
-            delta.apply(self);
-            // println!("applied delta: {:?}", delta);
+            if dbg!(self.clone().check_delta_changing(*delta)) {
+                delta.apply(self);
+            }
         }
     }
 
@@ -233,8 +241,18 @@ impl Gameboard {
         }
 
         for delta in deltas.iter_mut() {
-            delta.apply(self);
+            if dbg!(self.clone().check_delta_changing(*delta)) {
+                delta.apply(self);
+            }
         }
+        // let deltas: Vec<&Delta> = deltas
+        //     .iter()
+        //     .filter(|&d| self.clone().check_delta_changing(*d))
+        //     .collect();
+        // deltas
+        //     .map(|d| d.apply(self))
+        //     .collect::<Vec<()>>();
+
         deltas = Vec::new();
 
         for i in 0..9 {
@@ -304,7 +322,9 @@ impl Gameboard {
             deltas.extend(self.clone().onlypossincluster(i));
         }
         for delta in deltas.iter_mut() {
-            delta.apply(self);
+            if dbg!(self.clone().check_delta_changing(*delta)) {
+                delta.apply(self);
+            }
         }
         // if self.setonlypossible() {
         //      self.autosolve()
@@ -688,5 +708,33 @@ impl Gameboard {
             }
         }
         changedsth
+    }
+
+    /// Check if this particular Delta would change anything to begin with
+    fn check_delta_changing(self, delta: Delta) -> bool {
+        let ind = delta.delta.0;
+
+        match delta.delta.1 {
+            Left(v) => self.ispossible(ind, v),
+            Right(p) => {
+                (0..9_usize)
+                    .into_iter()
+                    .filter(|&i| self.possible[ind[1]][ind[0]][i] && !p[i])
+                    .collect::<Vec<usize>>()
+                    .len()
+                    > 0
+            }
+        }
+        // for setting the actual value (LEFT):
+        // check if it is possible to set.
+        // if self.ispossible(ind, val) {
+        //
+        // for setting new possibilities:
+        // check if new 'reduced' possibilities are actually different
+        //
+        // setpossible:
+        // for i in 0..9 {
+        //     self.possible[ind[1]][ind[0]][i] = self.possible[ind[1]][ind[0]][i] && poss[i];
+        // }
     }
 }
