@@ -216,7 +216,7 @@ impl Gameboard {
             deltas.extend(self.clone().possibleincluster(i));
         }
         for delta in deltas.iter_mut() {
-            if dbg!(self.clone().check_delta_changing(*delta)) {
+            if self.clone().check_delta_changing(*delta) {
                 delta.apply(self);
             }
         }
@@ -241,7 +241,7 @@ impl Gameboard {
         }
 
         for delta in deltas.iter_mut() {
-            if dbg!(self.clone().check_delta_changing(*delta)) {
+            if self.clone().check_delta_changing(*delta) {
                 delta.apply(self);
             }
         }
@@ -322,7 +322,7 @@ impl Gameboard {
             deltas.extend(self.clone().onlypossincluster(i));
         }
         for delta in deltas.iter_mut() {
-            if dbg!(self.clone().check_delta_changing(*delta)) {
+            if self.clone().check_delta_changing(*delta) {
                 delta.apply(self);
             }
         }
@@ -571,12 +571,6 @@ impl Gameboard {
         cluster: usize,
         number: usize,
     ) -> Vec<Delta> {
-        println!(
-            "excluded number {} in col {} but not cluster {}",
-            number + 1,
-            row,
-            cluster
-        );
         let bc = (cluster % 3) * 3; // base colum of cluster
         let br = (cluster / 3) * 3; // base row of cluster
         let mut d = Vec::new();
@@ -604,12 +598,6 @@ impl Gameboard {
         cluster: usize,
         number: usize,
     ) -> Vec<Delta> {
-        println!(
-            "excluded number {} in col {} but not cluster {}",
-            number + 1,
-            col,
-            cluster
-        );
         let bc = (cluster % 3) * 3; // base colum of cluster
         let br = (cluster / 3) * 3; // base row of cluster
         let mut d = Vec::new();
@@ -637,12 +625,6 @@ impl Gameboard {
         row: usize,
         number: usize,
     ) -> Vec<Delta> {
-        println!(
-            "excluded number {} in cluster {} but not row {}",
-            number + 1,
-            cluster,
-            row
-        );
         let bc = (cluster % 3) * 3; // base colum of cluster
         let br = (cluster / 3) * 3; // base row of cluster
         let mut d = Vec::new();
@@ -666,12 +648,6 @@ impl Gameboard {
         col: usize,
         number: usize,
     ) -> Vec<Delta> {
-        println!(
-            "excluded number {} in cluster {} but not col {}",
-            number + 1,
-            cluster,
-            col
-        );
         let bc = (cluster % 3) * 3; // base colum of cluster
         let br = (cluster / 3) * 3; // base row of cluster
         let mut d = Vec::new();
