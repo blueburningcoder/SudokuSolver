@@ -230,7 +230,8 @@ impl Gameboard {
     /// Trying to solve this sudoku, using forward checking and arc-consistency.
     /// Not capable of solving it if there's multiple solutions.
     pub fn autosolve(&mut self) {
-        self.setonlypossible();
+        while {
+        let mut changedsth = false;
         let mut deltas = Vec::new();
         // first, g
         for i in 0..9 {
@@ -243,6 +244,7 @@ impl Gameboard {
         for delta in deltas.iter_mut() {
             if self.clone().check_delta_changing(*delta) {
                 delta.apply(self);
+                changedsth = true;
             }
         }
         // let deltas: Vec<&Delta> = deltas
@@ -324,12 +326,16 @@ impl Gameboard {
         for delta in deltas.iter_mut() {
             if self.clone().check_delta_changing(*delta) {
                 delta.apply(self);
+                changedsth = true;
             }
         }
         // if self.setonlypossible() {
         //      self.autosolve()
         // }
         // deltas.iter().for_each(|d: &mut Delta| d.apply(&mut self));
+
+        self.setonlypossible() || changedsth
+        } {}
     }
 
     /// Proposes updated Deltas regarding the possibilities of this row.
