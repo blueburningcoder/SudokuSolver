@@ -16,8 +16,6 @@ pub struct Gameboard {
     pub possible: [[[bool; 9]; SIZE]; SIZE],
     /// If the value has been set manually
     pub manual: [[bool; SIZE]; SIZE],
-    /// If the value has been changed since the last iteration
-    pub changed: [[bool; SIZE]; SIZE],
 }
 
 /// Delta on game boards.
@@ -92,7 +90,6 @@ impl Gameboard {
             cells: [[0; SIZE]; SIZE],
             possible: [[[true; 9]; SIZE]; SIZE],
             manual: [[false; SIZE]; SIZE],
-            changed: [[false; SIZE]; SIZE],
         }
     }
 
@@ -127,7 +124,6 @@ impl Gameboard {
         if self.ispossible(ind, val) {
             println!("setting {} at {:?}.", val, ind);
             self.cells[ind[1]][ind[0]] = val;
-            self.changed[ind[1]][ind[0]] = true;
             self.possible[ind[1]][ind[0]] = [false; 9];
             if val == 0 {
                 self.resetpossible();
@@ -193,7 +189,6 @@ impl Gameboard {
         for i in 0..9 {
             self.possible[ind[1]][ind[0]][i] = self.possible[ind[1]][ind[0]][i] && poss[i];
         }
-        self.changed[ind[1]][ind[0]] = true;
     }
 
     /// Resetting the possible values to everything possible.
@@ -229,112 +224,107 @@ impl Gameboard {
 
     /// Trying to solve this sudoku, using forward checking and arc-consistency.
     /// Not capable of solving it if there's multiple solutions.
-    pub fn autosolve(&mut self) {
+    pub fn autosolve(&mut self, cont: bool) {
         while {
-        let mut changedsth = false;
-        let mut deltas = Vec::new();
-        // first, g
-        for i in 0..9 {
-            // forward checking
-            deltas.extend(self.clone().possibleinrow(i));
-            deltas.extend(self.clone().possibleincol(i));
-            deltas.extend(self.clone().possibleincluster(i));
-        }
-
-        for delta in deltas.iter_mut() {
-            if self.clone().check_delta_changing(*delta) {
-                delta.apply(self);
-                changedsth = true;
+            let mut changedsth = false;
+            let mut deltas = Vec::new();
+            // first, g
+            for i in 0..9 {
+                // forward checking
+                deltas.extend(self.clone().possibleinrow(i));
+                deltas.extend(self.clone().possibleincol(i));
+                deltas.extend(self.clone().possibleincluster(i));
             }
-        }
-        // let deltas: Vec<&Delta> = deltas
-        //     .iter()
-        //     .filter(|&d| self.clone().check_delta_changing(*d))
-        //     .collect();
-        // deltas
-        //     .map(|d| d.apply(self))
-        //     .collect::<Vec<()>>();
 
-        deltas = Vec::new();
-
-        for i in 0..9 {
-            // Arc Consistency Tier 1: Check if it is the only possibility in
-            // a row/col/cluster and set it accordingly.
-
-            // Tier 2a: detect if only possible 'row' or 'col' in cluster, and
-            // exclude possibilities in other clusters
-            // (implemented)
-            //
-            // Example (possibilities):
-            // 0 0 0 | 0 0 0 | 0 5 0
-            // 0 0 0 | 0 5 5 | 0 5 0
-            // 5 5 5 | 0 5 5 | 0 0 5
-            // After:
-            // 0 0 0 | 0 0 0 | 0 5 0
-            // 0 0 0 | 0 5 5 | 0 5 0
-            // 5 5 5 | 0 X X | 0 0 X
-            //
-            // test from being inside the cluster if these are the same row/col
-            // modify this row/col then in excluding it in the other clusters.
-
-            // Tier 2b: detect one row/col being excluded (number wise) in two
-            // clusters in one line (no diagonal). exclude the other
-            // (implemented)
-            //
-            // Example (possibilities):
-            // 0 0 0 | 0 0 0 | 5 5 0
-            // 0 0 5 | 0 5 0 | 0 5 0
-            // 0 5 5 | 0 5 0 | 0 0 5
-            // After:
-            // 0 0 0 | 0 0 0 | 5 5 0
-            // 0 0 5 | 0 5 0 | 0 X 0
-            // 0 5 5 | 0 5 0 | 0 0 X
-            //
-            // test from row/col if this is within the same cluster
-            // modify this cluster then in excluding it in the other rows/cols.
-
-            // Tier 3: detect a case in which three possibilities aren't
-            // actually needed, and exclude the third. There might even be a
-            // more general case than this.
-            // (missing)
-            //
-            // Example (numbers):
-            // 0 0 0 | 0 0 0 | 0 0 0
-            // 0 0 0 | 0 0 0 | 0 0 5
-            // 0 0 0 | 0 0 0 | 0 0 0
-            // ---------------------
-            // 0 5 0 | 0 0 0 | 0 0 0
-            // 0 0 0 | 0 0 0 | 0 0 0
-            // 0 0 0 | 0 0 0 | 0 0 0
-            // ---------------------
-            // 0 0 0 | 0 0 0 | 0 0 0
-            // 0 0 0 | 0 0 5 | 0 0 0
-            // 0 0 0 | 0 0 0 | 0 0 0
-            //
-            // Usually there is then in the other fields enough numbers to make
-            // in each of them either only two or three possibilities, it is
-            // sufficient for only one of them to only have two possibilities
-            // in a cluster.
-            //
-            // test: backtrack both possibilities and exclude the not actually
-            // needed fields.
-
-            deltas.extend(self.clone().onlypossinrow(i));
-            deltas.extend(self.clone().onlypossincol(i));
-            deltas.extend(self.clone().onlypossincluster(i));
-        }
-        for delta in deltas.iter_mut() {
-            if self.clone().check_delta_changing(*delta) {
-                delta.apply(self);
-                changedsth = true;
+            for delta in deltas.iter_mut() {
+                if self.clone().check_delta_changing(*delta) {
+                    delta.apply(self);
+                    changedsth = true;
+                }
             }
-        }
-        // if self.setonlypossible() {
-        //      self.autosolve()
-        // }
-        // deltas.iter().for_each(|d: &mut Delta| d.apply(&mut self));
+            // let deltas: Vec<&Delta> = deltas
+            //     .iter()
+            //     .filter(|&d| self.clone().check_delta_changing(*d))
+            //     .collect();
+            // deltas
+            //     .map(|d| d.apply(self))
+            //     .collect::<Vec<()>>();
 
-        self.setonlypossible() || changedsth
+            deltas = Vec::new();
+
+            for i in 0..9 {
+                // Arc Consistency Tier 1: Check if it is the only possibility in
+                // a row/col/cluster and set it accordingly.
+
+                // Tier 2a: detect if only possible 'row' or 'col' in cluster, and
+                // exclude possibilities in other clusters
+                // (implemented)
+                //
+                // Example (possibilities):
+                // 0 0 0 | 0 0 0 | 0 5 0
+                // 0 0 0 | 0 5 5 | 0 5 0
+                // 5 5 5 | 0 5 5 | 0 0 5
+                // After:
+                // 0 0 0 | 0 0 0 | 0 5 0
+                // 0 0 0 | 0 5 5 | 0 5 0
+                // 5 5 5 | 0 X X | 0 0 X
+                //
+                // test from being inside the cluster if these are the same row/col
+                // modify this row/col then in excluding it in the other clusters.
+
+                // Tier 2b: detect one row/col being excluded (number wise) in two
+                // clusters in one line (no diagonal). exclude the other
+                // (implemented)
+                //
+                // Example (possibilities):
+                // 0 0 0 | 0 0 0 | 5 5 0
+                // 0 0 5 | 0 5 0 | 0 5 0
+                // 0 5 5 | 0 5 0 | 0 0 5
+                // After:
+                // 0 0 0 | 0 0 0 | 5 5 0
+                // 0 0 5 | 0 5 0 | 0 X 0
+                // 0 5 5 | 0 5 0 | 0 0 X
+                //
+                // test from row/col if this is within the same cluster
+                // modify this cluster then in excluding it in the other rows/cols.
+
+                // Tier 3: detect a case in which three possibilities aren't
+                // actually needed, and exclude the third. There might even be a
+                // more general case than this.
+                // (missing)
+                //
+                // Example (numbers):
+                // 0 0 0 | 0 0 0 | 0 0 0
+                // 0 0 0 | 0 0 0 | 0 0 5
+                // 0 0 0 | 0 0 0 | 0 0 0
+                // ---------------------
+                // 0 5 0 | 0 0 0 | 0 0 0
+                // 0 0 0 | 0 0 0 | 0 0 0
+                // 0 0 0 | 0 0 0 | 0 0 0
+                // ---------------------
+                // 0 0 0 | 0 0 0 | 0 0 0
+                // 0 0 0 | 0 0 5 | 0 0 0
+                // 0 0 0 | 0 0 0 | 0 0 0
+                //
+                // Usually there is then in the other fields enough numbers to make
+                // in each of them either only two or three possibilities, it is
+                // sufficient for only one of them to only have two possibilities
+                // in a cluster.
+                //
+                // test: backtrack both possibilities and exclude the not actually
+                // needed fields.
+
+                deltas.extend(self.clone().onlypossinrow(i));
+                deltas.extend(self.clone().onlypossincol(i));
+                deltas.extend(self.clone().onlypossincluster(i));
+            }
+            for delta in deltas.iter_mut() {
+                if self.clone().check_delta_changing(*delta) {
+                    delta.apply(self);
+                    changedsth = true;
+                }
+            }
+            (self.setonlypossible() || changedsth) && cont
         } {}
     }
 
@@ -692,6 +682,63 @@ impl Gameboard {
         changedsth
     }
 
+    fn getleastamount(&mut self, n: usize) -> Vec<(usize, usize)> {
+        self.possible
+            .iter()
+            .enumerate()
+            .map(|(i, r)| {
+                r.iter()
+                    .enumerate()
+                    .filter(|(_j, p)| p.iter().filter(|b| **b).collect::<Vec<&bool>>().len() == n)
+                    .map(|(j, _p)| (i, j))
+                    .collect::<Vec<(usize, usize)>>()
+            })
+            .flatten()
+            .collect()
+    }
+
+    /// tries to solve this sudoku (at least the next step) using backtracking.
+    /// Still buggy.
+    pub fn backtracksolver(&mut self) {
+        return;
+        // first: find cell with the least amount of different possible values,
+        // usually two.
+        let mut n = 2;
+        // let mut l = 0;
+        while {
+            let least = self.getleastamount(n);
+
+            if least.len() > 0 {
+                // let mut i = 0;
+                let numbers: Vec<u8> = self.possible[least[0].1][least[0].0]
+                    .iter()
+                    .enumerate()
+                    .filter(|(_i, b)| **b)
+                    .map(|(i, _b)| (i + 1) as u8)
+                    .collect();
+                for n in numbers {
+                    if self.testbacktrack([least[0].0, least[0].1], n) {
+                        self.set([least[0].0, least[0].1], n);
+                        return;
+                    }
+                }
+                true
+            } else {
+                println!("Did not find any cells with 'only' {} possibilities!", n);
+                n += 1;
+                true
+            }
+        } {}
+    }
+
+    /// Test if setting this particular value results in a solved board or not.
+    fn testbacktrack(&mut self, ind: [usize; 2], val: u8) -> bool {
+        let mut test = self.clone();
+        test.set(ind, val);
+        test.autosolve(true);
+        test.issolved()
+    }
+
     /// Check if this particular Delta would change anything to begin with
     fn check_delta_changing(self, delta: Delta) -> bool {
         let ind = delta.delta.0;
@@ -718,5 +765,11 @@ impl Gameboard {
         // for i in 0..9 {
         //     self.possible[ind[1]][ind[0]][i] = self.possible[ind[1]][ind[0]][i] && poss[i];
         // }
+    }
+
+    /// Returns if this Gameboard has been fully solved
+    fn issolved(self) -> bool {
+        // iterating through all rows (and cells) and return if they are all different from 0.
+        self.cells.iter().all(|r| r.iter().all(|&n| n != 0u8))
     }
 }

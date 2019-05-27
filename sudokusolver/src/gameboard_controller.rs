@@ -71,9 +71,10 @@ impl GameboardController {
                     Key::Down => self.select(ind[0], ind[1], 0, 1),
                     Key::Left => self.select(ind[0], ind[1], -1, 0),
                     Key::Up => self.select(ind[0], ind[1], 0, -1),
-                    Key::S => self.gameboard.autosolve(),
+                    Key::S => self.gameboard.autosolve(true),
+                    Key::T => self.gameboard.autosolve(false),
                     Key::Z => self.gameboard.reset_manual(),
-                    // Key::b => self.gameboard.backtrack(),
+                    Key::B => self.gameboard.backtracksolver(),
                     _ => (),
                 }
             }
