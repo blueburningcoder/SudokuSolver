@@ -2,9 +2,12 @@ language: rust
 cache:
     directories:
         - $HOME/.cargo
+        - $HOME/.rustup
         - $HOME/build/fkarg/SudokuSolver/sudokusolver/target
 before_install:
-    - cd sudokusolver
+  - rustup self update
+  - rustup update
+  - cd sudokusolver
 rust:
   - stable
   - beta
