@@ -18,7 +18,7 @@ impl GameboardController {
     /// Creates a new gameboard controller.
     pub fn new(gameboard: Gameboard) -> GameboardController {
         GameboardController {
-            gameboard: gameboard,
+            gameboard,
             selected_cell: None,
             cursor_pos: [0.0; 2],
         }

@@ -67,7 +67,7 @@ pub struct GameboardView {
 impl GameboardView {
     /// Creates a new gameboard view.
     pub fn new(settings: GameboardViewSettings) -> GameboardView {
-        GameboardView { settings: settings }
+        GameboardView { settings }
     }
 
     /// Draw gameboard.
@@ -112,8 +112,8 @@ impl GameboardView {
         }
 
         // Draw characters or possibilities.
-        let text_image = Image::new_color(settings.text_color);
         let cell_size = settings.size / 9.0;
+        let text_image = Image::new_color(settings.text_color);
         for i in 0..9 {
             for j in 0..9 {
                 if let Some(ch) = controller.gameboard.char([i, j]) {
@@ -125,6 +125,7 @@ impl GameboardView {
                     if let Ok(character) = glyphs.character(34, ch) {
                         let ch_x = pos[0] + character.left();
                         let ch_y = pos[1] - character.top();
+                        println!("Printing {} at {}:{}", ch, ch_x, ch_y);
                         text_image.draw(
                             character.texture,
                             &c.draw_state,
@@ -132,7 +133,9 @@ impl GameboardView {
                             g,
                         );
                     }
+
                 } else {
+
                     // Drawing the excluded possibilities otherwise.
                     for k in 0..9 {
                         if controller.gameboard.possible[j][i][k] {
@@ -159,6 +162,7 @@ impl GameboardView {
                             }
                         }
                     }
+
                 }
             }
         }

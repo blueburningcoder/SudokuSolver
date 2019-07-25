@@ -1,4 +1,7 @@
 #![deny(missing_docs)]
+#![allow(unused_imports)]
+#![allow(unreachable_code)]
+#![allow(clippy::collapsible_if)]
 
 //! A Sudoku game.
 
@@ -25,10 +28,13 @@ fn main() {
     let opengl = OpenGL::V3_2;
 
     let settings = WindowSettings::new("Sudoku", [418; 2])
-        .opengl(opengl)
-        .exit_on_esc(true);
+                        .opengl(opengl)
+                        // .graphics_api(opengl)
+                        .exit_on_esc(true);
 
-    let mut window: GlutinWindow = settings.build().expect("Could not create window");
+    let mut window: GlutinWindow = settings
+                        .build()
+                        .expect("Could not create window");
 
     let mut events = Events::new(EventSettings::new().lazy(true));
     let mut gl = GlGraphics::new(opengl);
@@ -49,6 +55,7 @@ fn main() {
             &e,
         );
         if let Some(args) = e.render_args() {
+            println!("New Frame");
             gl.draw(args.viewport(), |c, g| {
                 use graphics::clear;
 
@@ -60,3 +67,4 @@ fn main() {
 
     println!("{}", settings.get_exit_on_esc());
 }
+
