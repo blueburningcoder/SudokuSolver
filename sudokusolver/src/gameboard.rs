@@ -122,7 +122,6 @@ impl Gameboard {
     /// Set cell value.
     pub fn set(&mut self, ind: [usize; 2], val: u8) {
         if self.ispossible(ind, val) {
-            println!("setting {} at {:?}.", val, ind);
             self.cells[ind[1]][ind[0]] = val;
             self.possible[ind[1]][ind[0]] = [false; 9];
             if val == 0 {
@@ -134,7 +133,6 @@ impl Gameboard {
     /// Set cell value manually.
     pub fn setmanually(&mut self, ind: [usize; 2], val: u8) {
         if self.ispossible(ind, val) {
-            println!("manually setting {} at {:?}.", val, ind);
             self.cells[ind[1]][ind[0]] = val;
             self.manual[ind[1]][ind[0]] = true;
             self.possible[ind[1]][ind[0]] = [false; 9];
@@ -147,7 +145,6 @@ impl Gameboard {
 
     /// reset all fields that have not been set manually.
     pub fn reset_manual(&mut self) {
-        println!("Resetting non manually set values");
         for i in 0..9 {
             for j in 0..9 {
                 if !self.manual[i][j] {
@@ -225,34 +222,47 @@ impl Gameboard {
     /// Trying to solve this sudoku, using forward checking and arc-consistency.
     /// Not capable of solving it if there's multiple solutions.
     pub fn autosolve(&mut self, cont: bool) {
+        let mut first = true;
+        let mut changedsth = [false; 9];
+        let mut updated = false;
+
         while {
-            let mut changedsth = false;
             let mut deltas = Vec::new();
-            // first, g
-            for i in 0..9 {
-                // forward checking
-                deltas.extend(self.clone().possibleinrow(i));
-                deltas.extend(self.clone().possibleincol(i));
-                deltas.extend(self.clone().possibleincluster(i));
-            }
+            let indices = Gameboard::get_update_indices(changedsth, first);
+            changedsth = [false; 9];
 
-            for delta in deltas.iter_mut() {
-                if self.clone().check_delta_changing(*delta) {
-                    delta.apply(self);
-                    changedsth = true;
+
+            if updated || first {
+                for &i in indices.iter() {
+                    // forward checking
+                    deltas.extend(self.clone().possibleinrow(i));
+                    deltas.extend(self.clone().possibleincol(i));
+                    deltas.extend(self.clone().possibleincluster(i));
                 }
+
+                for delta in deltas.iter_mut() {
+                    if self.clone().check_delta_changing(*delta) {
+                        delta.apply(self);
+                        let loc = delta.delta.0;
+                        let cluster = loc[0] / 3 + (loc[1] / 3) * 3;
+                        changedsth[cluster] = true;
+                    }
+                }
+
+                // let deltas: Vec<&Delta> = deltas
+                //     .iter()
+                //     .filter(|&d| self.clone().check_delta_changing(*d))
+                //     .collect();
+                // deltas
+                //     .map(|d| d.apply(self))
+                //     .collect::<Vec<()>>();
+
+                deltas = Vec::new();
             }
-            // let deltas: Vec<&Delta> = deltas
-            //     .iter()
-            //     .filter(|&d| self.clone().check_delta_changing(*d))
-            //     .collect();
-            // deltas
-            //     .map(|d| d.apply(self))
-            //     .collect::<Vec<()>>();
+            first = false;
 
-            deltas = Vec::new();
 
-            for i in 0..9 {
+            for &i in indices.iter() {
                 // Arc Consistency Tier 1: Check if it is the only possibility in
                 // a row/col/cluster and set it accordingly.
 
@@ -321,10 +331,13 @@ impl Gameboard {
             for delta in deltas.iter_mut() {
                 if self.clone().check_delta_changing(*delta) {
                     delta.apply(self);
-                    changedsth = true;
+                    let loc = delta.delta.0;
+                    let cluster = loc[0] / 3 + (loc[1] / 3) * 3;
+                    changedsth[cluster] = true;
                 }
             }
-            (self.setonlypossible() || changedsth) && cont
+            updated = self.setonlypossible();
+            (updated || changedsth.iter().any(|&v| v)) && cont
         } {}
     }
 
@@ -424,7 +437,6 @@ impl Gameboard {
                 }
             }
         }
-        // println!("with number: {}: {},{}    p: {}, {:?}", self.cells[br + i / 3][bc + i % 3], br + i / 3, bc + i % 3, possibles, possible);
         d
     }
 
@@ -662,7 +674,6 @@ impl Gameboard {
 
     /// If there's only one number left to be possible, set this number.
     fn setonlypossible(&mut self) -> bool {
-        println!("new round!");
         let mut changedsth = false;
         for i in 0..9 {
             for j in 0..9 {
@@ -754,6 +765,7 @@ impl Gameboard {
                     > 0
             }
         }
+
         // for setting the actual value (LEFT):
         // check if it is possible to set.
         // if self.ispossible(ind, val) {
@@ -772,4 +784,30 @@ impl Gameboard {
         // iterating through all rows (and cells) and return if they are all different from 0.
         self.cells.iter().all(|r| r.iter().all(|&n| n != 0u8))
     }
+
+    /// Returns iterator over indices of cells based on previous changes
+    fn get_update_indices(changedsth: [bool; 9], first: bool) -> Vec<usize> {
+        if first {
+            return vec![0, 1, 2, 3, 4, 5, 6, 7, 8];
+        }
+        let mut indices = vec![];
+        for rows in 0..3 {
+            if changedsth[rows * 3] || changedsth[rows * 3 + 1] || changedsth[rows * 3 + 2] {
+                indices.extend(vec![rows * 3, rows * 3 + 1, rows * 3 + 2]);
+            }
+        }
+        for cols in 0..3 {
+            if changedsth[cols] || changedsth[3 + cols] || changedsth[6 + cols] {
+                indices.extend(vec![cols, 3 + cols, 6 + cols]);
+            }
+        }
+        indices.sort();
+        indices.dedup();
+
+        indices
+    }
+
 }
+
+
+

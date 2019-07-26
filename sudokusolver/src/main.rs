@@ -55,7 +55,6 @@ fn main() {
             &e,
         );
         if let Some(args) = e.render_args() {
-            println!("New Frame");
             gl.draw(args.viewport(), |c, g| {
                 use graphics::clear;
 
@@ -65,6 +64,5 @@ fn main() {
         }
     }
 
-    println!("{}", settings.get_exit_on_esc());
 }
 

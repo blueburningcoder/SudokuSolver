@@ -125,7 +125,6 @@ impl GameboardView {
                     if let Ok(character) = glyphs.character(34, ch) {
                         let ch_x = pos[0] + character.left();
                         let ch_y = pos[1] - character.top();
-                        println!("Printing {} at {}:{}", ch, ch_x, ch_y);
                         text_image.draw(
                             character.texture,
                             &c.draw_state,
