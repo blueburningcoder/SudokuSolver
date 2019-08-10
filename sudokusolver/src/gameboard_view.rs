@@ -82,7 +82,7 @@ impl GameboardView {
     {
         use graphics::{Image, Line, Rectangle, Transformed};
 
-        let ref settings = self.settings;
+        let settings = &self.settings;
         let board_rect = [
             settings.position[0],
             settings.position[1],
@@ -174,8 +174,8 @@ impl GameboardView {
                 continue;
             }
 
-            let x = settings.position[0] + i as f64 / 9.0 * settings.size;
-            let y = settings.position[1] + i as f64 / 9.0 * settings.size;
+            let x = settings.position[0] + f64::from(i) / 9.0 * settings.size;
+            let y = settings.position[1] + f64::from(i) / 9.0 * settings.size;
             let x2 = settings.position[0] + settings.size;
             let y2 = settings.position[1] + settings.size;
 
@@ -190,8 +190,8 @@ impl GameboardView {
         let section_edge = Line::new(settings.section_edge_color, settings.section_edge_radius);
         for i in 0..3 {
             // Set up coordinates
-            let x = settings.position[0] + i as f64 / 3.0 * settings.size;
-            let y = settings.position[1] + i as f64 / 3.0 * settings.size;
+            let x = settings.position[0] + f64::from(i) / 3.0 * settings.size;
+            let y = settings.position[1] + f64::from(i) / 3.0 * settings.size;
             let x2 = settings.position[0] + settings.size;
             let y2 = settings.position[1] + settings.size;
 

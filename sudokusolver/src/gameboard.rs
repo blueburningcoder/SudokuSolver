@@ -6,7 +6,7 @@ use either::*;
 const SIZE: usize = 9;
 
 /// Stores game board information.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Gameboard {
     /// Stores the content of the cells.
     /// `0` is an empty cell.
@@ -446,8 +446,10 @@ impl Gameboard {
 
         for i in 0..9 {
             if self.cells[row][i] == 0 {
-                for j in 0..9 {
-                    sums[j][i] = self.possible[row][i][j];
+                for (j, rows) in sums.iter_mut().enumerate() {
+                    rows[i] = self.possible[row][i][j];
+                // for j in 0..9 {
+                    // sums[j][i] = self.possible[row][i][j];
                 }
             }
         }
@@ -532,8 +534,10 @@ impl Gameboard {
         let br = (cluster / 3) * 3; // base row of cluster
         for i in 0..9 {
             if self.cells[br + i / 3][bc + i % 3] == 0 {
-                for j in 0..9 {
-                    sums[j][i] = self.possible[br + i / 3][bc + i % 3][j];
+                for (j, row) in sums.iter_mut().enumerate() {
+                    row[i] = self.possible[br + i / 3][bc + i % 3][j];
+                // for j in 0..9 {
+                    // sums[j][i] = self.possible[br + i / 3][bc + i % 3][j];
                 }
             }
         }
@@ -700,7 +704,7 @@ impl Gameboard {
             .map(|(i, r)| {
                 r.iter()
                     .enumerate()
-                    .filter(|(_j, p)| p.iter().filter(|b| **b).collect::<Vec<&bool>>().len() == n)
+                    .filter(|(_j, p)| p.iter().filter(|b| **b).count() == n)
                     .map(|(j, _p)| (i, j))
                     .collect::<Vec<(usize, usize)>>()
             })
@@ -712,39 +716,11 @@ impl Gameboard {
     /// Still buggy.
     pub fn backtracksolver(&mut self) {
         return;
-        // first: find cell with the least amount of different possible values,
-        // usually two.
-        let mut n = 2;
-        // let mut l = 0;
-        while {
-            let least = self.getleastamount(n);
-
-            if least.len() > 0 {
-                // let mut i = 0;
-                let numbers: Vec<u8> = self.possible[least[0].1][least[0].0]
-                    .iter()
-                    .enumerate()
-                    .filter(|(_i, b)| **b)
-                    .map(|(i, _b)| (i + 1) as u8)
-                    .collect();
-                for n in numbers {
-                    if self.testbacktrack([least[0].0, least[0].1], n) {
-                        self.set([least[0].0, least[0].1], n);
-                        return;
-                    }
-                }
-                true
-            } else {
-                println!("Did not find any cells with 'only' {} possibilities!", n);
-                n += 1;
-                true
-            }
-        } {}
     }
 
     /// Test if setting this particular value results in a solved board or not.
     fn testbacktrack(&mut self, ind: [usize; 2], val: u8) -> bool {
-        let mut test = self.clone();
+        let mut test = *self;
         test.set(ind, val);
         test.autosolve(true);
         test.issolved()
@@ -758,10 +734,8 @@ impl Gameboard {
             Left(v) => self.ispossible(ind, v),
             Right(p) => {
                 (0..9_usize)
-                    .into_iter()
                     .filter(|&i| self.possible[ind[1]][ind[0]][i] && !p[i])
-                    .collect::<Vec<usize>>()
-                    .len()
+                    .count()
                     > 0
             }
         }
